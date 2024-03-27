@@ -108,40 +108,50 @@ public class HelloApplication extends Application {
 
     private void bindSliderEvent(Slider timeSlider, Label timeShow) {
         timeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            String nonLinearValue = convertValueToNonLinear(newValue.doubleValue());
-            timeShow.setText(nonLinearValue);
+            TimeInfo info = this.toTimeInfo(newValue.intValue());
+            timeShow.setText(info.number);
         });
     }
 
     private TimeInfo toTimeInfo(int val) {
         TimeInfo info = new TimeInfo();
-        if (val < 60) {
-            info.number = String.format("00:%02d", val);
-            info.second = val * 60L;
+        if (val <= 60) {
+            info.second = val * 60;
+            info.number = this.formatterSecond(info.second);
             info.pointer = (double) val;
-        } else if (val == 60) {
-            info.number = "01:00";
-            info.second = val * 60L;
-            info.pointer = (double) val;
-        } else if (val < 84) {
+        } else if (val <= 84) {
             int nv = val - 60;
-            info.number = String.format("00:%02d", val);
-            info.second = 3600L + nv * 5 * 60L;
+            info.second = 3600 + nv * 5 * 60;
+            info.number = this.formatterSecond(info.second);
             info.pointer = (double) val;
-        } else if (val == 84) {
-            int nv = val - 60;
-            info.number = String.format("00:%02d", val);
-            info.second = 3600L + nv * 5 * 60L;
+        } else if (val <= 102) {
+            int nv = val - 84;
+            info.second = (3 * 3600) + nv * 10 * 60;
+            info.number = this.formatterSecond(info.second);
             info.pointer = (double) val;
-        } else if (val < 102) {
-        } else if (val == 102) {
-        } else if (val < 126) {
-        } else if (val == 126) {
-        } else if (val < 150) {
-        } else if (val == 150) {
-
+        } else if (val <= 126) {
+            int nv = val - 102;
+            info.second = (6 * 3600) + nv * 15 * 60;
+            info.number = this.formatterSecond(info.second);
+            info.pointer = (double) val;
+        } else if (val <= 150) {
+            int nv = val - 126;
+            info.second = (12 * 3600) + nv * 30 * 60;
+            info.number = this.formatterSecond(info.second);
+            info.pointer = (double) val;
         }
         return info;
+    }
+
+    private String formatterSecond(int seconds) {
+        int hours = seconds / 3600;
+        int minutes = (seconds % 3600) / 60;
+        int secs = seconds % 60;
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, secs);
+        } else {
+            return String.format("%02d:%02d", minutes, secs);
+        }
     }
 
     private String convertValueToNonLinear(double value) {
@@ -155,6 +165,6 @@ public class HelloApplication extends Application {
 
 class TimeInfo {
     String number;
-    Long second;
+    Integer second;
     Double pointer;
 }
