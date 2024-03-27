@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="cc.itez.tool.easyshutdown.HelloController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label fx:id="timeShow" text="00:00">
+        <font>
+            <Font size="36.0"/>
+        </font>
+    </Label>
+    <Slider fx:id="timeSlider">
+        <cursor>
+            <Cursor fx:constant="DEFAULT"/>
+        </cursor>
+    </Slider>
+    <Button text="开始">
+        <font>
+            <Font size="24.0"/>
+        </font>
+    </Button>
+    <HBox prefHeight="0.0" prefWidth="200.0">
+        <RadioButton mnemonicParsing="false" text="关机">
+            <HBox.margin>
+                <Insets/>
+            </HBox.margin>
+            <padding>
+                <Insets right="10.0"/>
+            </padding>
+            <toggleGroup>
+                <ToggleGroup fx:id="action_type"/>
+            </toggleGroup>
+        </RadioButton>
+        <RadioButton mnemonicParsing="false" text="重启" toggleGroup="$action_type">
+            <padding>
+                <Insets left="10.0"/>
+            </padding>
+        </RadioButton>
+    </HBox>
+</VBox>
