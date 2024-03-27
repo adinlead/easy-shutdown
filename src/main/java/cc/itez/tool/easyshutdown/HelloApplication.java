@@ -113,6 +113,18 @@ public class HelloApplication extends Application {
         });
     }
 
+    /**
+     * | 时间(小时) | 跨度(分钟) | 步长(分钟) | 刻度数 | 刻度位置 |
+     * |--------|--------|--------|-----|------|
+     * | 1      | 60     | 1      | 60  | 60   |
+     * | 3      | 120    | 5      | 24  | 84   |
+     * | 6      | 180    | 10     | 18  | 102  |
+     * | 12     | 360    | 15     | 24  | 126  |
+     * | 24     | 720    | 30     | 24  | 150  |
+     *
+     * @param val
+     * @return
+     */
     private TimeInfo toTimeInfo(int val) {
         TimeInfo info = new TimeInfo();
         if (val <= 60) {
