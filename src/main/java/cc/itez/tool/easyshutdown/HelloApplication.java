@@ -2,6 +2,7 @@ package cc.itez.tool.easyshutdown;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -11,6 +12,7 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import java.io.IOException;
+import java.net.URL;
 
 public class HelloApplication extends Application {
     @Override
@@ -20,11 +22,7 @@ public class HelloApplication extends Application {
         vbox.setAlignment(javafx.geometry.Pos.CENTER);
         vbox.setPadding(new Insets(40.0, 20.0, 20.0, 20.0));
 
-        // 创建Label
-        Label timeShow = new Label("00:00");
-        timeShow.setFont(new Font(36.0));
-        vbox.getChildren().add(timeShow);
-// 创建一个Slider对象，其值范围从0到150，初始值为0
+        // 创建一个Slider对象，其值范围从0到150，初始值为0
         // 创建Slider
         Slider timeSlider = new Slider(0, 150, 0);
 
@@ -39,6 +37,7 @@ public class HelloApplication extends Application {
                 // 使用switch表达式根据Slider的值返回对应的字符串标签
                 return switch (aDouble.intValue()) {
                     case 0 -> "现在";
+                    case 30 -> "30分钟";
                     case 60 -> "1小时";
                     case 84 -> "3小时";
                     case 102 -> "6小时";
@@ -70,46 +69,70 @@ public class HelloApplication extends Application {
         // 设置Slider的主要刻度单元，即每隔多少个单位显示一个主要刻度
         // 这里设置为6，意味着每隔6个单位（比如0, 6, 12, 18, ...）显示一个主要刻度
         timeSlider.setMajorTickUnit(6);
-        vbox.getChildren().add(timeSlider);
 
-        // 创建Button
-        Button startButton = new Button("开始");
-        startButton.setFont(new Font(24.0));
-        vbox.getChildren().add(startButton);
+        vbox.getChildren().add(timeSlider);
 
         // 创建ToggleGroup
         ToggleGroup actionType = new ToggleGroup();
 
+        HBox bottomHbox = new HBox();
+        vbox.getChildren().add(bottomHbox);
+        bottomHbox.setPrefWidth(200.0);
+        bottomHbox.setAlignment(Pos.CENTER);
+
+        // 创建Label
+        Label timeShow = new Label("00:00:00");
+        URL numberFontResource = getClass().getResource("/fonts/cursed-timer-ulil-font/CursedTimerUlil-Aznm.ttf");
+        if (numberFontResource == null) {
+            timeShow.setFont(new Font(64));
+        } else {
+            timeShow.setFont(Font.loadFont(numberFontResource.toExternalForm(), 72));
+        }
+        bottomHbox.getChildren().add(timeShow);
         // 创建HBox和RadioButton
-        HBox hbox = new HBox();
-        hbox.setPrefWidth(200.0);
+        VBox actionBtnBox = new VBox();
+        bottomHbox.getChildren().add(actionBtnBox);
 
         RadioButton shutdownRadioButton = new RadioButton("关机");
         shutdownRadioButton.setToggleGroup(actionType);
         shutdownRadioButton.setSelected(true);
-        shutdownRadioButton.setPadding(new Insets(0, 0, 20, 10));
-        hbox.getChildren().add(shutdownRadioButton);
+        shutdownRadioButton.setPadding(new Insets(0, 10, 10, 10));
+        actionBtnBox.getChildren().add(shutdownRadioButton);
 
         RadioButton restartRadioButton = new RadioButton("重启");
         restartRadioButton.setToggleGroup(actionType);
-        restartRadioButton.setPadding(new Insets(0, 10, 20, 0));
-        hbox.getChildren().add(restartRadioButton);
+        restartRadioButton.setPadding(new Insets(0, 10, 10, 10));
+        actionBtnBox.getChildren().add(restartRadioButton);
 
-        vbox.getChildren().add(hbox);
+        RadioButton ringingRadioButton = new RadioButton("响铃");
+        ringingRadioButton.setToggleGroup(actionType);
+        ringingRadioButton.setPadding(new Insets(0, 10, 10, 10));
+        actionBtnBox.getChildren().add(ringingRadioButton);
+
 
         // 创建Scene和设置Stage
-        Scene scene = new Scene(vbox, 500, 300);
+        Scene scene = new Scene(vbox, 500, 200);
         stage.setTitle("定时关机");
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
 
         this.bindSliderEvent(timeSlider, timeShow);
     }
 
     private void bindSliderEvent(Slider timeSlider, Label timeShow) {
+        // 添加数值变动监听器
         timeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             TimeInfo info = this.toTimeInfo(newValue.intValue());
             timeShow.setText(info.number);
+            System.out.println("timeSliderValue     >>>> " + timeSlider.getValue());
+        });
+        timeSlider.valueChangingProperty().addListener((observableValue, isRelease, isCapture) -> {
+            System.out.println(" ===== valueChangingProperty ===== ");
+            System.out.println("observableValue     >>>> " + observableValue);
+            System.out.println("timeSliderValue     >>>> " + timeSlider.getValue());
+            System.out.println("isRelease           >>>> " + isRelease);
+            System.out.println("isCapture           >>>> " + isCapture);
         });
     }
 
@@ -159,11 +182,7 @@ public class HelloApplication extends Application {
         int hours = seconds / 3600;
         int minutes = (seconds % 3600) / 60;
         int secs = seconds % 60;
-        if (hours > 0) {
-            return String.format("%02d:%02d:%02d", hours, minutes, secs);
-        } else {
-            return String.format("%02d:%02d", minutes, secs);
-        }
+        return String.format("%02d:%02d:%02d", hours, minutes, secs);
     }
 
     private String convertValueToNonLinear(double value) {
