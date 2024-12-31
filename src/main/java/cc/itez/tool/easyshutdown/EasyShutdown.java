@@ -1,20 +1,29 @@
 package cc.itez.tool.easyshutdown;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 
-import java.io.IOException;
-import java.net.URL;
+public class EasyShutdown extends Application {
+    private Timeline timeline; // 将 Timeline 定义为类的成员变量
 
-public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         // 创建VBox
@@ -121,19 +130,60 @@ public class HelloApplication extends Application {
     }
 
     private void bindSliderEvent(Slider timeSlider, Label timeShow) {
+        AtomicReference<Double> lastValue = new AtomicReference<>(0D);
         // 添加数值变动监听器
         timeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            TimeInfo info = this.toTimeInfo(newValue.intValue());
-            timeShow.setText(info.number);
-            System.out.println("timeSliderValue     >>>> " + timeSlider.getValue());
+            double value = timeSlider.getValue();
+            if (Math.abs(lastValue.get() - value) > 0.5) {
+                lastValue.set(value);
+                TimeInfo info = this.toTimeInfo(value);
+                timeShow.setText(info.number);
+                System.out.println("timeSliderValue     >>>> " + value);
+            }
         });
         timeSlider.valueChangingProperty().addListener((observableValue, isRelease, isCapture) -> {
+            TimeInfo info = this.toTimeInfo(timeSlider.getValue());
+            if (isRelease) {
+                // 从info.second开始倒计时，并且每秒更新timeShow的text内容为this.formatterSecond(info.second)
+                startCountdown(info, timeShow);
+            } else if (isCapture) {
+                if (timeline != null) {
+                    timeline.stop();
+                }
+            }
             System.out.println(" ===== valueChangingProperty ===== ");
             System.out.println("observableValue     >>>> " + observableValue);
             System.out.println("timeSliderValue     >>>> " + timeSlider.getValue());
+            System.out.println("infoNumber          >>>> " + info.number);
             System.out.println("isRelease           >>>> " + isRelease);
             System.out.println("isCapture           >>>> " + isCapture);
         });
+    }
+
+    private void startCountdown(TimeInfo info, Label timeShow) {
+        // 停止之前的 Timeline
+        if (timeline != null) {
+            timeline.stop();
+        }
+
+        // 创建一个新的 Timeline 对象，每秒执行一次
+        timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            // 每秒减少一秒
+            info.second--;
+            // 更新 timeShow 的文本内容
+            timeShow.setText(this.formatterSecond(info.second));
+
+            // 如果倒计时结束，停止 Timeline
+            if (info.second <= 0) {
+                timeline.stop();
+                // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
+            }
+        }));
+
+        // 设置 Timeline 的循环次数为无限次
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        // 启动 Timeline
+        timeline.play();
     }
 
     /**
@@ -145,35 +195,32 @@ public class HelloApplication extends Application {
      * | 12     | 360    | 15     | 24  | 126  |
      * | 24     | 720    | 30     | 24  | 150  |
      *
-     * @param val
+     * @param value
      * @return
      */
-    private TimeInfo toTimeInfo(int val) {
+    private TimeInfo toTimeInfo(double value) {
+        int val = (int) value;
         TimeInfo info = new TimeInfo();
+        info.pointer = value;
         if (val <= 60) {
             info.second = val * 60;
             info.number = this.formatterSecond(info.second);
-            info.pointer = (double) val;
         } else if (val <= 84) {
             int nv = val - 60;
             info.second = 3600 + nv * 5 * 60;
             info.number = this.formatterSecond(info.second);
-            info.pointer = (double) val;
         } else if (val <= 102) {
             int nv = val - 84;
             info.second = (3 * 3600) + nv * 10 * 60;
             info.number = this.formatterSecond(info.second);
-            info.pointer = (double) val;
         } else if (val <= 126) {
             int nv = val - 102;
             info.second = (6 * 3600) + nv * 15 * 60;
             info.number = this.formatterSecond(info.second);
-            info.pointer = (double) val;
         } else if (val <= 150) {
             int nv = val - 126;
             info.second = (12 * 3600) + nv * 30 * 60;
             info.number = this.formatterSecond(info.second);
-            info.pointer = (double) val;
         }
         return info;
     }
