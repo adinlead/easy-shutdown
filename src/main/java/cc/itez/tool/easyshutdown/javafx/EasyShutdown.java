@@ -1,5 +1,7 @@
 package cc.itez.tool.easyshutdown.javafx;
 
+import cc.itez.tool.easyshutdown.Logger;
+import cc.itez.tool.easyshutdown.TimeInfo;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -28,12 +30,12 @@ public class EasyShutdown extends Application {
         return primaryStage;
     }
 
-    private Timeline timeline; // 将 Timeline 定义为类的成员变量
-    private AtomicReference<String> operate = new AtomicReference<>(Operate.SHUTDOWN);
+    private Timeline timeline;
+    private final AtomicReference<String> operate = new AtomicReference<>(Operate.SHUTDOWN);
 
     @Override
     public void start(Stage stage) {
-        this.primaryStage = stage;
+        primaryStage = stage;
         // 创建VBox
         VBox vbox = new VBox(20.0);
         vbox.setAlignment(javafx.geometry.Pos.CENTER);
@@ -172,15 +174,15 @@ public class EasyShutdown extends Application {
             double value = timeSlider.getValue();
             if (Math.abs(lastValue.get() - value) > 0.5) {
                 lastValue.set(value);
-                TimeInfo info = this.toTimeInfo(value);
-                timeShow.setText(info.number);
+                TimeInfo info = new TimeInfo(value);
+                timeShow.setText(info.number());
                 Logger.debug("timeSliderValue     >>>> " + value);
             }
         });
         timeSlider.valueChangingProperty().addListener((observableValue, isRelease, isCapture) -> {
-            TimeInfo info = this.toTimeInfo(timeSlider.getValue());
-            if (info.second > 0 && isRelease) {
-                // 从info.second开始倒计时，并且每秒更新timeShow的text内容为this.formatterSecond(info.second)
+            TimeInfo info = new TimeInfo(timeSlider.getValue());
+            if (info.second() > 0 && isRelease) {
+                // 从info.second()开始倒计时，并且每秒更新timeShow的text内容为this.formatterSecond(info.second())
                 startCountdown(info, timeShow);
             } else if (isCapture) {
                 if (timeline != null) {
@@ -190,7 +192,7 @@ public class EasyShutdown extends Application {
             Logger.debug(" ===== valueChangingProperty ===== ");
             Logger.debug("observableValue     >>>> " + observableValue);
             Logger.debug("timeSliderValue     >>>> " + timeSlider.getValue());
-            Logger.debug("infoNumber          >>>> " + info.number);
+            Logger.debug("infoNumber          >>>> " + info.number());
             Logger.debug("isRelease           >>>> " + isRelease);
             Logger.debug("isCapture           >>>> " + isCapture);
         });
@@ -204,13 +206,11 @@ public class EasyShutdown extends Application {
 
         // 创建一个新的 Timeline 对象，每秒执行一次
         timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            // 每秒减少一秒
-            info.second--;
             // 更新 timeShow 的文本内容
-            timeShow.setText(this.formatterSecond(info.second));
+            timeShow.setText(info.secondDecrement().number());
 
             // 如果倒计时结束，停止 Timeline
-            if (info.second <= 0) {
+            if (info.second() <= 0) {
                 timeline.stop();
                 // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
                 Logger.debug("operate >>>> " + operate.get());
@@ -222,60 +222,6 @@ public class EasyShutdown extends Application {
         timeline.setCycleCount(Timeline.INDEFINITE);
         // 启动 Timeline
         timeline.play();
-    }
-
-    /**
-     * | 时间(小时) | 跨度(分钟) | 步长(分钟) | 刻度数 | 刻度位置 |
-     * |--------|--------|--------|-----|------|
-     * | 1      | 60     | 1      | 60  | 60   |
-     * | 3      | 120    | 5      | 24  | 84   |
-     * | 6      | 180    | 10     | 18  | 102  |
-     * | 12     | 360    | 15     | 24  | 126  |
-     * | 24     | 720    | 30     | 24  | 150  |
-     *
-     * @param value
-     * @return
-     */
-    private TimeInfo toTimeInfo(double value) {
-        int val = (int) value;
-        TimeInfo info = new TimeInfo();
-        info.pointer = value;
-        if (val <= 60) {
-            info.second = val * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (val <= 84) {
-            int nv = val - 60;
-            info.second = 3600 + nv * 5 * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (val <= 102) {
-            int nv = val - 84;
-            info.second = (3 * 3600) + nv * 10 * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (val <= 126) {
-            int nv = val - 102;
-            info.second = (6 * 3600) + nv * 15 * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (val <= 150) {
-            int nv = val - 126;
-            info.second = (12 * 3600) + nv * 30 * 60;
-            info.number = this.formatterSecond(info.second);
-        }
-        return info;
-    }
-
-    private String formatterSecond(int seconds) {
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-        int secs = seconds % 60;
-        return String.format("%02d:%02d:%02d", hours, minutes, secs);
-    }
-
-    private String convertValueToNonLinear(double value) {
-        return String.format("%.2f", value);
-    }
-
-    public static void main(String[] args) {
-        launch();
     }
 }
 

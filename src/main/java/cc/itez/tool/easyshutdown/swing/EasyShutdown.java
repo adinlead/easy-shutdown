@@ -1,5 +1,8 @@
 package cc.itez.tool.easyshutdown.swing;
 
+import cc.itez.tool.easyshutdown.Logger;
+import cc.itez.tool.easyshutdown.TimeInfo;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -7,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicReference;
+
 public class EasyShutdown {
     private static JFrame primaryStage;
 
@@ -148,15 +152,15 @@ public class EasyShutdown {
             int value = timeSlider.getValue();
             if (Math.abs(lastValue.get() - value) > 0.5) {
                 lastValue.set(value);
-                TimeInfo info = this.toTimeInfo(value);
-                timeShow.setText(info.number);
+                TimeInfo info = new TimeInfo(value);
+                timeShow.setText(info.number());
                 Logger.debug("timeSliderValue     >>>> " + value);
             }
         });
         timeSlider.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                TimeInfo info = toTimeInfo(timeSlider.getValue());
-                if (info.second > 0) {
+                TimeInfo info = new TimeInfo(timeSlider.getValue());
+                if (info.second() > 0) {
                     // 从info.second开始倒计时，并且每秒更新timeShow的text内容为this.formatterSecond(info.second)
                     startCountdown(info, timeShow);
                 }
@@ -180,78 +184,20 @@ public class EasyShutdown {
         timeline = new javax.swing.Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 每秒减少一秒
-                info.second--;
                 // 更新 timeShow 的文本内容
-                timeShow.setText(this.formatterSecond(info.second));
+                timeShow.setText(info.secondDecrement().number());
 
                 // 如果倒计时结束，停止 Timeline
-                if (info.second <= 0) {
+                if (info.second() <= 0) {
                     timeline.stop();
                     // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
                     Logger.debug("operate >>>> " + operate.get());
                     Operate.execute(operate.get());
                 }
             }
-
-            private String formatterSecond(int seconds) {
-                int hours = seconds / 3600;
-                int minutes = (seconds % 3600) / 60;
-                int secs = seconds % 60;
-                return String.format("%02d:%02d:%02d", hours, minutes, secs);
-            }
         });
 
         // 启动 Timeline
         timeline.start();
-    }
-
-    /**
-     * | 时间(小时) | 跨度(分钟) | 步长(分钟) | 刻度数 | 刻度位置 |
-     * |--------|--------|--------|-----|------|
-     * | 1      | 60     | 1      | 60  | 60   |
-     * | 3      | 120    | 5      | 24  | 84   |
-     * | 6      | 180    | 10     | 18  | 102  |
-     * | 12     | 360    | 15     | 24  | 126  |
-     * | 24     | 720    | 30     | 24  | 150  |
-     *
-     * @param value
-     * @return
-     */
-    private TimeInfo toTimeInfo(int value) {
-        TimeInfo info = new TimeInfo();
-        info.pointer = value;
-        if (value <= 60) {
-            info.second = value * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (value <= 84) {
-            int nv = value - 60;
-            info.second = 3600 + nv * 5 * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (value <= 102) {
-            int nv = value - 84;
-            info.second = (3 * 3600) + nv * 10 * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (value <= 126) {
-            int nv = value - 102;
-            info.second = (6 * 3600) + nv * 15 * 60;
-            info.number = this.formatterSecond(info.second);
-        } else if (value <= 150) {
-            int nv = value - 126;
-            info.second = (12 * 3600) + nv * 30 * 60;
-            info.number = this.formatterSecond(info.second);
-        }
-        return info;
-    }
-
-    private String formatterSecond(int seconds) {
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-        int secs = seconds % 60;
-        return String.format("%02d:%02d:%02d", hours, minutes, secs);
-    }
-
-    private String convertValueToNonLinear(double value) {
-        return String.format("%.2f", value);
     }
 }

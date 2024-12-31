@@ -1,5 +1,6 @@
 package cc.itez.tool.easyshutdown.javafx;
 
+import cc.itez.tool.easyshutdown.Logger;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;

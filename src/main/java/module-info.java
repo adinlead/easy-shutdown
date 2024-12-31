@@ -11,4 +11,6 @@ module cc.itez.tool.easyshutdown {
 
     exports cc.itez.tool.easyshutdown.swing;
     exports cc.itez.tool.easyshutdown.javafx;
+    exports cc.itez.tool.easyshutdown;
+    opens cc.itez.tool.easyshutdown to javafx.fxml;
 }

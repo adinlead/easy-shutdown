@@ -1,5 +1,6 @@
 package cc.itez.tool.easyshutdown.swing;
 
+import cc.itez.tool.easyshutdown.Logger;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 
