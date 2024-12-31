@@ -65,7 +65,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>cc.itez.tool.easyshutdown.swing.Application</mainClass>
+                            <mainClass>cc.itez.tool.easyshutdown.swing.AppWithSwing</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -19,12 +19,22 @@ public class EasyShutdown {
 
     public EasyShutdown() {
         // 创建JFrame
-        primaryStage = new JFrame("定时关机");
+        primaryStage = new JFrame("易关机");
         primaryStage.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         primaryStage.setSize(500, 200);
         primaryStage.setResizable(false);
         // 设置窗口位于屏幕中央
         primaryStage.setLocationRelativeTo(null);
+
+        // 设置窗口图标
+        URL iconURL = getClass().getResource("/img/logo-32.png");
+        if (iconURL != null) {
+            ImageIcon icon = new ImageIcon(iconURL);
+            primaryStage.setIconImage(icon.getImage());
+        } else {
+            Logger.warn("Icon not found: /img/logo-32.png");
+        }
+
         // 创建JPanel
         JPanel vbox = new JPanel();
         vbox.setLayout(new BoxLayout(vbox, BoxLayout.Y_AXIS));
@@ -64,7 +74,7 @@ public class EasyShutdown {
 
         // 创建JLabel
         JLabel timeShow = new JLabel("00:00:00");
-        URL numberFontResource = getClass().getResource("/fonts/cursed-timer-ulil-font/CursedTimerUlil-Aznm.ttf");
+        URL numberFontResource = getClass().getResource("/fonts/number-default.ttf");
         if (numberFontResource == null) {
             timeShow.setFont(new Font("Serif", Font.BOLD, 64));
         } else {

@@ -59,7 +59,7 @@ public class Operate {
     }
 
     public static void ringing() {
-        playAudio("/sounds/morning-joy-alarm-clock-20961.mp3");
+        playAudio("/sounds/morning-joy.mp3");
         showPopup();
     }
 

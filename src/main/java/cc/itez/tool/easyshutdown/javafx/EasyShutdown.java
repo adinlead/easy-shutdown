@@ -99,7 +99,7 @@ public class EasyShutdown extends Application {
 
         // 创建Label
         Label timeShow = new Label("00:00:00");
-        URL numberFontResource = getClass().getResource("/fonts/cursed-timer-ulil-font/CursedTimerUlil-Aznm.ttf");
+        URL numberFontResource = getClass().getResource("/fonts/number-default.ttf");
         if (numberFontResource == null) {
             timeShow.setFont(new Font(64));
         } else {
@@ -147,9 +147,19 @@ public class EasyShutdown extends Application {
 
         // 创建Scene和设置Stage
         Scene scene = new Scene(vbox, 500, 200);
-        stage.setTitle("定时关机");
+        stage.setTitle("易关机");
         stage.setScene(scene);
         stage.setResizable(false);
+
+        // 设置窗口图标
+        URL iconURL = getClass().getResource("/img/logo-32.png");
+        if (iconURL != null) {
+            javafx.scene.image.Image icon = new javafx.scene.image.Image(iconURL.toExternalForm());
+            primaryStage.getIcons().add(icon);
+        } else {
+            Logger.warn("Icon not found: /img/logo-32.png");
+        }
+
         stage.show();
 
         this.bindSliderEvent(timeSlider, timeShow);
