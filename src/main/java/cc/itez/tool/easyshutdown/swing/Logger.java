@@ -1,4 +1,4 @@
-package cc.itez.tool.easyshutdown;
+package cc.itez.tool.easyshutdown.swing;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

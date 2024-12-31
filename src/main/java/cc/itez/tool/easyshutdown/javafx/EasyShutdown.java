@@ -1,4 +1,4 @@
-package cc.itez.tool.easyshutdown;
+package cc.itez.tool.easyshutdown.javafx;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
