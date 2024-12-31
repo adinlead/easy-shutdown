@@ -129,7 +129,6 @@ public class EasyShutdown {
         primaryStage.setVisible(true);
 
         this.bindSliderEvent(timeSlider, timeShow);
-        Operate.execute(Operate.RINGING);
     }
 
     private void bindSliderEvent(JSlider timeSlider, JLabel timeShow) {
