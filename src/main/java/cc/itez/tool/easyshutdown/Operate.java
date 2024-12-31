@@ -33,7 +33,7 @@ public class Operate {
             case SHUTDOWN -> shutdown();
             case REBOOT -> reboot();
             case RINGING -> ringing();
-            default -> System.err.println("Unsupported operating system.");
+            default -> Logger.warn("Unsupported operating system.");
         }
     }
 
@@ -45,7 +45,7 @@ public class Operate {
             } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
                 Runtime.getRuntime().exec("shutdown -h now");
             } else {
-                System.err.println("Unsupported operating system.");
+                Logger.warn("Unsupported operating system.");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,7 +60,7 @@ public class Operate {
             } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
                 Runtime.getRuntime().exec("reboot");
             } else {
-                System.err.println("Unsupported operating system.");
+                Logger.warn("Unsupported operating system.");
             }
         } catch (IOException e) {
             e.printStackTrace();

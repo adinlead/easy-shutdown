@@ -1,10 +1,5 @@
 package cc.itez.tool.easyshutdown;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -22,6 +17,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class EasyShutdown extends Application {
     private static Stage primaryStage;
@@ -118,7 +116,7 @@ public class EasyShutdown extends Application {
         shutdownRadioButton.setPadding(new Insets(0, 10, 10, 10));
         shutdownRadioButton.addEventHandler(ActionEvent.ACTION, event -> {
             if (shutdownRadioButton.isSelected()) {
-                System.out.println("shutdownRadioButton ACTION");
+                Logger.debug("shutdownRadioButton ACTION");
                 operate.set(Operate.SHUTDOWN);
             }
         });
@@ -129,7 +127,7 @@ public class EasyShutdown extends Application {
         restartRadioButton.setPadding(new Insets(0, 10, 10, 10));
         restartRadioButton.addEventHandler(ActionEvent.ACTION, event -> {
             if (restartRadioButton.isSelected()) {
-                System.out.println("restartRadioButton ACTION");
+                Logger.debug("restartRadioButton ACTION");
                 operate.set(Operate.REBOOT);
             }
         });
@@ -140,7 +138,7 @@ public class EasyShutdown extends Application {
         ringingRadioButton.setPadding(new Insets(0, 10, 10, 10));
         ringingRadioButton.addEventHandler(ActionEvent.ACTION, event -> {
             if (ringingRadioButton.isSelected()) {
-                System.out.println("ringingRadioButton ACTION");
+                Logger.debug("ringingRadioButton ACTION");
                 operate.set(Operate.RINGING);
             }
         });
@@ -166,12 +164,12 @@ public class EasyShutdown extends Application {
                 lastValue.set(value);
                 TimeInfo info = this.toTimeInfo(value);
                 timeShow.setText(info.number);
-                System.out.println("timeSliderValue     >>>> " + value);
+                Logger.debug("timeSliderValue     >>>> " + value);
             }
         });
         timeSlider.valueChangingProperty().addListener((observableValue, isRelease, isCapture) -> {
             TimeInfo info = this.toTimeInfo(timeSlider.getValue());
-            if (isRelease) {
+            if (info.second > 0 && isRelease) {
                 // 从info.second开始倒计时，并且每秒更新timeShow的text内容为this.formatterSecond(info.second)
                 startCountdown(info, timeShow);
             } else if (isCapture) {
@@ -179,12 +177,12 @@ public class EasyShutdown extends Application {
                     timeline.stop();
                 }
             }
-            System.out.println(" ===== valueChangingProperty ===== ");
-            System.out.println("observableValue     >>>> " + observableValue);
-            System.out.println("timeSliderValue     >>>> " + timeSlider.getValue());
-            System.out.println("infoNumber          >>>> " + info.number);
-            System.out.println("isRelease           >>>> " + isRelease);
-            System.out.println("isCapture           >>>> " + isCapture);
+            Logger.debug(" ===== valueChangingProperty ===== ");
+            Logger.debug("observableValue     >>>> " + observableValue);
+            Logger.debug("timeSliderValue     >>>> " + timeSlider.getValue());
+            Logger.debug("infoNumber          >>>> " + info.number);
+            Logger.debug("isRelease           >>>> " + isRelease);
+            Logger.debug("isCapture           >>>> " + isCapture);
         });
     }
 
@@ -205,7 +203,7 @@ public class EasyShutdown extends Application {
             if (info.second <= 0) {
                 timeline.stop();
                 // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
-                System.out.println("operate >>>> " + operate.get());
+                Logger.debug("operate >>>> " + operate.get());
                 Operate.execute(operate.get());
             }
         }));
