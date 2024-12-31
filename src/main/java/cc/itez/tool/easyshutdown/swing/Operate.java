@@ -121,22 +121,18 @@ public class Operate {
             gbc.insets = new Insets(10, 10, 10, 10);
 
             // 添加标签
-            gbc.gridy = 0;
             layout.add(label, gbc);
 
             // 添加按钮
             gbc.gridy = 1;
             layout.add(closeButton, gbc);
 
-            closeButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    stopAudio();
-                    popupStage.dispose();
-                    // 将主UI设为活动层
-                    if (EasyShutdown.getPrimaryStage() != null) {
-                        EasyShutdown.getPrimaryStage().toFront();
-                    }
+            closeButton.addActionListener(e -> {
+                stopAudio();
+                popupStage.dispose();
+                // 将主UI设为活动层
+                if (EasyShutdown.getPrimaryStage() != null) {
+                    EasyShutdown.getPrimaryStage().toFront();
                 }
             });
 

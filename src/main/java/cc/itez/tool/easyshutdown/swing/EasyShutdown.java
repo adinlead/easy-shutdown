@@ -19,7 +19,7 @@ public class EasyShutdown {
     }
 
     private javax.swing.Timer timeline; // 将 Timeline 定义为类的成员变量
-    private AtomicReference<String> operate = new AtomicReference<>(Operate.SHUTDOWN);
+    private final AtomicReference<String> operate = new AtomicReference<>(Operate.SHUTDOWN);
 
     public EasyShutdown() {
         // 创建JFrame
@@ -98,37 +98,28 @@ public class EasyShutdown {
 
         JRadioButton shutdownRadioButton = new JRadioButton("关机");
         shutdownRadioButton.setSelected(true);
-        shutdownRadioButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (shutdownRadioButton.isSelected()) {
-                    Logger.debug("shutdownRadioButton ACTION");
-                    operate.set(Operate.SHUTDOWN);
-                }
+        shutdownRadioButton.addActionListener(e -> {
+            if (shutdownRadioButton.isSelected()) {
+                Logger.debug("shutdownRadioButton ACTION");
+                operate.set(Operate.SHUTDOWN);
             }
         });
         actionBtnBox.add(shutdownRadioButton);
 
         JRadioButton restartRadioButton = new JRadioButton("重启");
-        restartRadioButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (restartRadioButton.isSelected()) {
-                    Logger.debug("restartRadioButton ACTION");
-                    operate.set(Operate.REBOOT);
-                }
+        restartRadioButton.addActionListener(e -> {
+            if (restartRadioButton.isSelected()) {
+                Logger.debug("restartRadioButton ACTION");
+                operate.set(Operate.REBOOT);
             }
         });
         actionBtnBox.add(restartRadioButton);
 
         JRadioButton ringingRadioButton = new JRadioButton("响铃");
-        ringingRadioButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (ringingRadioButton.isSelected()) {
-                    Logger.debug("ringingRadioButton ACTION");
-                    operate.set(Operate.RINGING);
-                }
+        ringingRadioButton.addActionListener(e -> {
+            if (ringingRadioButton.isSelected()) {
+                Logger.debug("ringingRadioButton ACTION");
+                operate.set(Operate.RINGING);
             }
         });
         actionBtnBox.add(ringingRadioButton);
@@ -181,19 +172,16 @@ public class EasyShutdown {
         }
 
         // 创建一个新的 Timeline 对象，每秒执行一次
-        timeline = new javax.swing.Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 更新 timeShow 的文本内容
-                timeShow.setText(info.secondDecrement().number());
+        timeline = new javax.swing.Timer(1000, e -> {
+            // 更新 timeShow 的文本内容
+            timeShow.setText(info.secondDecrement().number());
 
-                // 如果倒计时结束，停止 Timeline
-                if (info.second() <= 0) {
-                    timeline.stop();
-                    // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
-                    Logger.debug("operate >>>> " + operate.get());
-                    Operate.execute(operate.get());
-                }
+            // 如果倒计时结束，停止 Timeline
+            if (info.second() <= 0) {
+                timeline.stop();
+                // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
+                Logger.debug("operate >>>> " + operate.get());
+                Operate.execute(operate.get());
             }
         });
 

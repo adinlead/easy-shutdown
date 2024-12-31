@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class Logger {
     public static final StringBuffer buffer = new StringBuffer();
-    private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static final String LEVEL_DEBUG = "DEBUG";
     public static final String LEVEL_INFO = "INFO ";
     public static final String LEVEL_WARN = "WARN ";
@@ -65,10 +65,6 @@ public class Logger {
 
     public static void clearBuffer() {
         int n = 1024 * 1024;
-        if (buffer == null || n <= 0) {
-            buffer.setLength(0); // 清空缓冲区
-            return;
-        }
 
         int length = buffer.length();
         if (n >= length) {
@@ -104,13 +100,13 @@ public class Logger {
     }
 
     private static String stackTraceToString(Throwable throwable) {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("Exception occurred:\n");
-        buffer.append(throwable.toString()).append("\n");
+        StringBuilder builder = new StringBuilder();
+        builder.append("Exception occurred:\n");
+        builder.append(throwable.toString()).append("\n");
         for (StackTraceElement element : throwable.getStackTrace()) {
-            buffer.append("\tat ").append(element).append("\n");
+            builder.append("\tat ").append(element).append("\n");
         }
-        return buffer.toString();
+        return builder.toString();
     }
 
     public static void error(Exception e, String message, Object... args) {

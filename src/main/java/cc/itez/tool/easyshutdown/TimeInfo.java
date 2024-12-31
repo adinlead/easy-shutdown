@@ -32,7 +32,6 @@ public class TimeInfo {
      * | 24     | 720    | 30     | 24  | 150  |
      *
      * @param value 刻度位置
-     * @return 事件信息
      */
     public TimeInfo(double value) {
         int val = (int) value;
