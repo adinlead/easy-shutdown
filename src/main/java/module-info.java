@@ -4,6 +4,7 @@ module cc.itez.tool.easyshutdown {
 
     requires org.controlsfx.controls;
     requires org.kordamp.bootstrapfx.core;
+    requires jlayer;
 
     opens cc.itez.tool.easyshutdown to javafx.fxml;
     exports cc.itez.tool.easyshutdown;

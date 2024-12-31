@@ -2,11 +2,13 @@ package cc.itez.tool.easyshutdown;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -22,10 +24,18 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 public class EasyShutdown extends Application {
+    private static Stage primaryStage;
+
+    public static Stage getPrimaryStage() {
+        return primaryStage;
+    }
+
     private Timeline timeline; // 将 Timeline 定义为类的成员变量
+    private AtomicReference<String> operate = new AtomicReference<>(Operate.SHUTDOWN);
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
+        this.primaryStage = stage;
         // 创建VBox
         VBox vbox = new VBox(20.0);
         vbox.setAlignment(javafx.geometry.Pos.CENTER);
@@ -106,16 +116,34 @@ public class EasyShutdown extends Application {
         shutdownRadioButton.setToggleGroup(actionType);
         shutdownRadioButton.setSelected(true);
         shutdownRadioButton.setPadding(new Insets(0, 10, 10, 10));
+        shutdownRadioButton.addEventHandler(ActionEvent.ACTION, event -> {
+            if (shutdownRadioButton.isSelected()) {
+                System.out.println("shutdownRadioButton ACTION");
+                operate.set(Operate.SHUTDOWN);
+            }
+        });
         actionBtnBox.getChildren().add(shutdownRadioButton);
 
         RadioButton restartRadioButton = new RadioButton("重启");
         restartRadioButton.setToggleGroup(actionType);
         restartRadioButton.setPadding(new Insets(0, 10, 10, 10));
+        restartRadioButton.addEventHandler(ActionEvent.ACTION, event -> {
+            if (restartRadioButton.isSelected()) {
+                System.out.println("restartRadioButton ACTION");
+                operate.set(Operate.REBOOT);
+            }
+        });
         actionBtnBox.getChildren().add(restartRadioButton);
 
         RadioButton ringingRadioButton = new RadioButton("响铃");
         ringingRadioButton.setToggleGroup(actionType);
         ringingRadioButton.setPadding(new Insets(0, 10, 10, 10));
+        ringingRadioButton.addEventHandler(ActionEvent.ACTION, event -> {
+            if (ringingRadioButton.isSelected()) {
+                System.out.println("ringingRadioButton ACTION");
+                operate.set(Operate.RINGING);
+            }
+        });
         actionBtnBox.getChildren().add(ringingRadioButton);
 
 
@@ -177,6 +205,8 @@ public class EasyShutdown extends Application {
             if (info.second <= 0) {
                 timeline.stop();
                 // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
+                System.out.println("operate >>>> " + operate.get());
+                Operate.execute(operate.get());
             }
         }));
 
@@ -241,8 +271,3 @@ public class EasyShutdown extends Application {
     }
 }
 
-class TimeInfo {
-    String number;
-    Integer second;
-    Double pointer;
-}
