@@ -18,6 +18,7 @@ public class EasyShutdown {
 
     private javax.swing.Timer timeline; // 将 Timeline 定义为类的成员变量
     private final Operate operate = new Operate(mainFrame, Operate.SHUTDOWN);
+    private final Setting setting = new Setting(mainFrame);
 
     public EasyShutdown() {
         super();
@@ -34,18 +35,21 @@ public class EasyShutdown {
         // 设置窗口为无边框
         mainFrame.setUndecorated(true);
         // 设置自定义状态栏
-        buildCustomStatusBar();
+        buildCustomTitleBar();
         // 设置主面板
         buildMainPanel();
         // 设置窗口可见
         mainFrame.setVisible(true);
     }
 
+    private void buildSystemTray() {
+    }
+
     /**
      * 构建自定义状态栏
      * 该方法用于创建和配置一个自定义的状态栏，包括设置其外观、布局以及拖拽功能
      */
-    public void buildCustomStatusBar() {
+    public void buildCustomTitleBar() {
         // 创建并配置自定义状态栏
         JPanel customStatusBar = new JPanel();
         // 设置边框为1px黑色边框
@@ -84,12 +88,8 @@ public class EasyShutdown {
             iconLabel.setFont(new Font("Serif", Font.BOLD, 16));
             // 设置按钮的背景为透明
             iconLabel.setOpaque(false);
-            URL iconURL = getClass().getResource("/img/logo/logo-32.png");
-            if (iconURL != null) {
-                iconLabel.setIcon(new ImageIcon(new ImageIcon(iconURL).getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
-            } else {
-                Logger.warn("Icon not found: /img/logo-32.png");
-            }
+            iconLabel.setIcon(new ImageIcon(new ImageIcon(Resource.IMG_LOGO_32.url()).getImage()
+                    .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
 
             // 创建按钮组，这个按钮组放到右边
             JPanel titlePanel = new JPanel();
@@ -105,11 +105,14 @@ public class EasyShutdown {
             // 按钮右对齐
             buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
             // 添加托盘按钮
-            buttonPanel.add(createActionButton("/img/act_btn/tray.png", "托盘", e -> System.out.println("托盘功能")));
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY.path(), "托盘", e -> System.out.println("托盘功能")));
             // 添加设置按钮
-            buttonPanel.add(createActionButton("/img/act_btn/setting.png", "设置", e -> System.out.println("设置功能")));
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING.path(), "设置", e -> {
+                Logger.info("即将进入设置");
+                setting.popup();
+            }));
             // 添加关闭按钮
-            buttonPanel.add(createActionButton("/img/act_btn/close.png", "关闭", e -> {
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE.path(), "关闭", e -> {
                 Logger.info("即将退出程序");
                 System.exit(0);
             }));
@@ -193,11 +196,11 @@ public class EasyShutdown {
         // 创建时间显示标签
         JLabel timeShow = buildTimeLabel();
         timeShow.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
-        bottomPanel.add(timeShow,BorderLayout.WEST);
+        bottomPanel.add(timeShow, BorderLayout.WEST);
 
         // 创建操作按钮组
         JPanel actionBtnBox = buildActionButtonGroup();
-        bottomPanel.add(actionBtnBox,BorderLayout.EAST);
+        bottomPanel.add(actionBtnBox, BorderLayout.EAST);
         // 将底部面板添加到主面板
         mainPanel.add(bottomPanel);
         // 设置Scene和设置Stage
@@ -229,7 +232,6 @@ public class EasyShutdown {
         // 当关机按钮被选中时，执行关机操作
         shutdownRadioButton.addActionListener(e -> {
             if (shutdownRadioButton.isSelected()) {
-                Logger.debug("Set operate action => {}", Operate.SHUTDOWN);
                 operate.action(Operate.SHUTDOWN);
             }
         });
@@ -241,7 +243,6 @@ public class EasyShutdown {
         // 当重启按钮被选中时，执行重启操作
         restartRadioButton.addActionListener(e -> {
             if (restartRadioButton.isSelected()) {
-                Logger.debug("Set operate action => {}", Operate.REBOOT);
                 operate.action(Operate.REBOOT);
             }
         });
@@ -253,7 +254,6 @@ public class EasyShutdown {
         // 当响铃按钮被选中时，执行响铃操作
         ringingRadioButton.addActionListener(e -> {
             if (ringingRadioButton.isSelected()) {
-                Logger.debug("Set operate action => {}", Operate.RINGING);
                 operate.action(Operate.RINGING);
             }
         });
@@ -273,20 +273,14 @@ public class EasyShutdown {
         JLabel timeShow = new JLabel("00:00:00");
 
         // 尝试获取自定义数字字体资源的URL
-        URL numberFontResource = getClass().getResource("/fonts/number-default.ttf");
 
-        // 如果自定义字体资源URL为null，则使用默认的Serif字体
-        if (numberFontResource == null) {
-            timeShow.setFont(new Font("Serif", Font.BOLD, 75));
-        } else {
-            try {
-                // 如果自定义字体资源URL不为null，则尝试创建并设置自定义字体
-                Font font = Font.createFont(Font.TRUETYPE_FONT, numberFontResource.openStream());
-                timeShow.setFont(font.deriveFont(75F));
-            } catch (Exception e) {
-                // 如果在加载或设置自定义字体时发生异常，则打印异常信息
-                e.printStackTrace();
-            }
+        try {
+            // 如果自定义字体资源URL不为null，则尝试创建并设置自定义字体
+            Font font = Font.createFont(Font.TRUETYPE_FONT, Resource.FONT_NUMBER_DEFAULT.stream());
+            timeShow.setFont(font.deriveFont(75F));
+        } catch (Exception e) {
+            // 如果在加载或设置自定义字体时发生异常，则打印异常信息
+            e.printStackTrace();
         }
 
         // 返回初始化完成的时间显示标签

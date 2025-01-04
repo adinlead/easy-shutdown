@@ -27,6 +27,7 @@ public class Operate {
     }
 
     public void action(String action) {
+        Logger.debug("Set operate action => {}", Operate.REBOOT);
         this.action = action;
     }
 
@@ -74,7 +75,7 @@ public class Operate {
     }
 
     public void ringing() {
-        playAudio("/sounds/morning-joy.mp3");
+        playAudio(Resource.SOUND_DEFAULT.path());
         showPopup();
     }
 
