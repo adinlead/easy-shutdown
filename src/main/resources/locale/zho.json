@@ -1,0 +1,30 @@
+{
+  "langName": "简体中文",
+  "langCode": "zho",
+  "title": "易关机",
+  "description": "一个简单易用的关机工具。",
+  "titleBar": {
+    "title": "易关机",
+    "tray": "托盘",
+    "setting": "设置",
+    "close": "关闭"
+  },
+  "timeSlider": {
+    "scale0": "现在",
+    "scale30": "30分钟",
+    "scale60": "1小时",
+    "scale84": "3小时",
+    "scale102": "6小时",
+    "scale126": "12小时",
+    "scale150": "24小时"
+  },
+  "actionButtons": {
+    "shutdown": "关机",
+    "restart": "重启",
+    "ringing": "响铃"
+  },
+  "tray": {
+    "exit": "退出",
+    "tooltip": "易关机"
+  }
+}

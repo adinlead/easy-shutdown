@@ -6,8 +6,10 @@ module cc.itez.tool.easyshutdown {
     requires org.kordamp.bootstrapfx.core;
     requires jlayer;
     requires java.desktop;
+    requires com.google.gson;
 
     opens cc.itez.tool.easyshutdown.javafx to javafx.fxml;
+    opens cc.itez.tool.easyshutdown.swing to com.google.gson;
 
     exports cc.itez.tool.easyshutdown.swing;
     exports cc.itez.tool.easyshutdown.javafx;

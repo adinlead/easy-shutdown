@@ -21,6 +21,8 @@ public class EasyShutdown {
     private final Operate operate = new Operate(mainFrame, Operate.SHUTDOWN);
     private final Setting setting = new Setting(mainFrame);
 
+    private Locale locale;
+
     private Font defaultTextFont;
     private Font defaultNumberFont;
 
@@ -32,7 +34,7 @@ public class EasyShutdown {
     public void init() {
         this.initVariables();
         // 创建主UI窗口
-        mainFrame.setTitle("易关机");
+        mainFrame.setTitle(locale.getTitle());
         mainFrame.setSize(500, 200);
         mainFrame.setResizable(false);
         // 设置窗口位于屏幕中央
@@ -62,6 +64,7 @@ public class EasyShutdown {
         } catch (IOException | FontFormatException e) {
             throw new RuntimeException(e);
         }
+        locale = Locale.get(java.util.Locale.getDefault().getISO3Language());
     }
 
     /**
@@ -73,6 +76,7 @@ public class EasyShutdown {
     private void buildSystemTray() {
         // 判断系统是否支持托盘功能
         if (SystemTray.isSupported()) {
+            Locale.Tray trayText = locale.getTrayMenus();
             SystemTray tray = SystemTray.getSystemTray();
 
             // 创建一个托盘图标
@@ -82,14 +86,14 @@ public class EasyShutdown {
 
             // 创建一个退出选项
             MenuItem exitItem = new MenuItem();
-            exitItem.setLabel("退出");
+            exitItem.setLabel(trayText.getExit());
             exitItem.setFont(defaultTextFont.deriveFont(16F));
             exitItem.addActionListener(e -> System.exit(0));
 
             popup.add(exitItem);
 
             // 创建托盘图标
-            TrayIcon trayIcon = new TrayIcon(image, "易关机", popup);
+            TrayIcon trayIcon = new TrayIcon(image, trayText.getTooltip(), popup);
 
             // 双击托盘图标时，展示或隐藏主界面
             trayIcon.addMouseListener(new MouseAdapter() {
@@ -115,6 +119,7 @@ public class EasyShutdown {
      * 该方法用于创建和配置一个自定义的状态栏，包括设置其外观、布局以及拖拽功能
      */
     public void buildCustomTitleBar() {
+        Locale.TitleBar titleBarText = locale.getTitleBar();
         // 创建并配置自定义状态栏
         JPanel customStatusBar = new JPanel();
         // 设置边框为1px黑色边框
@@ -148,7 +153,7 @@ public class EasyShutdown {
         customStatusBar.setLayout(new BorderLayout());
         { // 创建并配置左侧部分(图标和标题)
             // 设置窗口图标
-            JLabel iconLabel = createLabel("易关机", 16);
+            JLabel iconLabel = createLabel(titleBarText.getTitle(), 16);
             iconLabel.setHorizontalAlignment(SwingConstants.LEFT);
             // 设置按钮的背景为透明
             iconLabel.setOpaque(false);
@@ -169,14 +174,14 @@ public class EasyShutdown {
             // 按钮右对齐
             buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
             // 添加托盘按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY, "托盘", e -> System.out.println("托盘功能")));
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY, titleBarText.getTray(), e -> System.out.println("托盘功能")));
             // 添加设置按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING, "设置", e -> {
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING, titleBarText.getSetting(), e -> {
                 Logger.info("即将进入设置");
                 setting.popup();
             }));
             // 添加关闭按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE, "关闭", e -> {
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE, titleBarText.getClose(), e -> {
                 Logger.info("即将退出程序");
                 System.exit(0);
             }));
@@ -276,6 +281,7 @@ public class EasyShutdown {
      * @return 包含操作按钮的面板
      */
     private JPanel buildActionButtonGroup() {
+        Locale.ActionButtons actionButtonsText = locale.getActionButtons();
         // 创建ButtonGroup，确保按钮只能被选中一个
         ButtonGroup buttonGroup = new ButtonGroup();
         // 创建操作按钮组面板
@@ -284,7 +290,7 @@ public class EasyShutdown {
         actionBtnBox.setLayout(new BoxLayout(actionBtnBox, BoxLayout.Y_AXIS));
 
         // 创建关机按钮，并设置为默认选中
-        JRadioButton shutdownRadioButton = new JRadioButton("关机");
+        JRadioButton shutdownRadioButton = new JRadioButton(actionButtonsText.getShutdown());
         shutdownRadioButton.setSelected(true);
         // 当关机按钮被选中时，执行关机操作
         shutdownRadioButton.addActionListener(e -> {
@@ -296,7 +302,7 @@ public class EasyShutdown {
         buttonGroup.add(shutdownRadioButton);
 
         // 创建重启按钮
-        JRadioButton restartRadioButton = new JRadioButton("重启");
+        JRadioButton restartRadioButton = new JRadioButton(actionButtonsText.getRestart());
         // 当重启按钮被选中时，执行重启操作
         restartRadioButton.addActionListener(e -> {
             if (restartRadioButton.isSelected()) {
@@ -307,7 +313,7 @@ public class EasyShutdown {
         buttonGroup.add(restartRadioButton);
 
         // 创建响铃按钮
-        JRadioButton ringingRadioButton = new JRadioButton("响铃");
+        JRadioButton ringingRadioButton = new JRadioButton(actionButtonsText.getRinging());
         // 当响铃按钮被选中时，执行响铃操作
         ringingRadioButton.addActionListener(e -> {
             if (ringingRadioButton.isSelected()) {
@@ -358,6 +364,7 @@ public class EasyShutdown {
      * @return JSlider 返回配置好的JSlider对象，用于表示时间滑动条
      */
     private JSlider buildTimeSlider() {
+        Locale.TimeSlider timeSliderText = locale.getTimeSlider();
         // 创建一个JSlider对象，其值范围从0到150，初始值为0
         JSlider timeSlider = new JSlider(0, 150, 0);
 
@@ -366,13 +373,13 @@ public class EasyShutdown {
         // 设置JSlider的标签格式转换器
         // 用于将JSlider的值转换为字符串，并显示在标签上
         Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
-        labelTable.put(0, createLabel("现在", 12));
-        labelTable.put(30, createLabel("30分钟", 12));
-        labelTable.put(60, createLabel("1小时", 12));
-        labelTable.put(84, createLabel("3小时", 12));
-        labelTable.put(102, createLabel("6小时", 12));
-        labelTable.put(126, createLabel("12小时", 12));
-        labelTable.put(150, createLabel("24小时", 12));
+        labelTable.put(0, createLabel(timeSliderText.getScale0(), 12));
+        labelTable.put(30, createLabel(timeSliderText.getScale30(), 12));
+        labelTable.put(60, createLabel(timeSliderText.getScale60(), 12));
+        labelTable.put(84, createLabel(timeSliderText.getScale84(), 12));
+        labelTable.put(102, createLabel(timeSliderText.getScale102(), 12));
+        labelTable.put(126, createLabel(timeSliderText.getScale126(), 12));
+        labelTable.put(150, createLabel(timeSliderText.getScale150(), 12));
 
         // 将自定义标签设置到滑动条上
         timeSlider.setLabelTable(labelTable);

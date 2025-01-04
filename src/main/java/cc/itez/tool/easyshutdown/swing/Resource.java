@@ -3,6 +3,7 @@ package cc.itez.tool.easyshutdown.swing;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
 /**
  * 资源枚举类，用于定义和管理应用程序中的静态资源
  * 包括图像、字体和声音文件等资源的路径
@@ -25,13 +26,15 @@ public enum Resource {
     FONT_TEXT_DEFAULT("/fonts/WQY-WeiMiHei.ttf"),
     /** 默认声音文件 **/
     SOUND_DEFAULT("/sounds/morning-joy.mp3"),
-    ;
+    /** 默认语言 **/
+    LANG_DEFAULT("/locale/zho.json");
 
     // 资源路径私有变量
     private final String path;
 
     /**
      * 获取资源路径
+     *
      * @return 资源路径字符串
      */
     public String path() {
@@ -40,6 +43,7 @@ public enum Resource {
 
     /**
      * 获取资源的URL
+     *
      * @return 资源的URL对象
      */
     public URL url() {
@@ -48,6 +52,7 @@ public enum Resource {
 
     /**
      * 枚举构造函数，初始化资源路径
+     *
      * @param path 资源路径字符串
      */
     Resource(String path) {
@@ -56,6 +61,7 @@ public enum Resource {
 
     /**
      * 获取资源的输入流
+     *
      * @return 资源的InputStream对象
      * @throws IOException 如果无法创建输入流，则抛出IOException
      */
