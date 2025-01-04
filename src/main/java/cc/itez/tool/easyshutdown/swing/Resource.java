@@ -10,6 +10,9 @@ import java.net.URL;
 public enum Resource {
     /** 32像素的LOGO图像 **/
     IMG_LOGO_32("/img/logo/logo-32.png"),
+    IMG_LOGO_48("/img/logo/logo-48.png"),
+    IMG_LOGO_64("/img/logo/logo-64.png"),
+    IMG_LOGO_512("/img/logo/logo-512.png"),
     /** 标题栏-托盘按钮图像 **/
     IMG_BAR_BTN_TRAY("/img/act_btn/tray.png"),
     /** 标题栏-设置按钮图像 **/
@@ -18,6 +21,8 @@ public enum Resource {
     IMG_BAR_BTN_CLOSE("/img/act_btn/close.png"),
     /** 倒计时数字字体 **/
     FONT_NUMBER_DEFAULT("/fonts/number-default.ttf"),
+    /** 默认文本字体 **/
+    FONT_TEXT_DEFAULT("/fonts/WQY-WeiMiHei.ttf"),
     /** 默认声音文件 **/
     SOUND_DEFAULT("/sounds/morning-joy.mp3"),
     ;

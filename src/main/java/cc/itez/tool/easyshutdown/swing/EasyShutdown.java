@@ -8,7 +8,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -20,29 +21,93 @@ public class EasyShutdown {
     private final Operate operate = new Operate(mainFrame, Operate.SHUTDOWN);
     private final Setting setting = new Setting(mainFrame);
 
+    private Font defaultTextFont;
+    private Font defaultNumberFont;
+
     public EasyShutdown() {
         super();
         this.init();
     }
 
     public void init() {
+        this.initVariables();
         // 创建主UI窗口
         mainFrame.setTitle("易关机");
         mainFrame.setSize(500, 200);
         mainFrame.setResizable(false);
         // 设置窗口位于屏幕中央
         mainFrame.setLocationRelativeTo(null);
+        // 设置窗口图标
+        mainFrame.setIconImage(Toolkit.getDefaultToolkit().createImage(Resource.IMG_LOGO_64.url()));
         // 设置窗口为无边框
         mainFrame.setUndecorated(true);
         // 设置自定义状态栏
         buildCustomTitleBar();
         // 设置主面板
         buildMainPanel();
+        // 创建系统托盘图标
+        buildSystemTray();
         // 设置窗口可见
         mainFrame.setVisible(true);
     }
 
+    public void initVariables() {
+        try (InputStream stream = Resource.FONT_TEXT_DEFAULT.stream()) {
+            defaultTextFont = Font.createFont(Font.TRUETYPE_FONT, stream);
+        } catch (IOException | FontFormatException e) {
+            throw new RuntimeException(e);
+        }
+        try (InputStream stream = Resource.FONT_NUMBER_DEFAULT.stream()) {
+            defaultNumberFont = Font.createFont(Font.TRUETYPE_FONT, stream);
+        } catch (IOException | FontFormatException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 构建系统托盘图标和相关功能
+     * 判断系统是否支持托盘功能，如果支持，则创建一个托盘图标。
+     * 右击托盘图标时，显示一个弹出菜单，菜单中仅包含一个退出选项。
+     * 双击托盘图标时，展示或隐藏主界面。
+     */
     private void buildSystemTray() {
+        // 判断系统是否支持托盘功能
+        if (SystemTray.isSupported()) {
+            SystemTray tray = SystemTray.getSystemTray();
+
+            // 创建一个托盘图标
+            Image image = Toolkit.getDefaultToolkit().getImage(Resource.IMG_LOGO_32.url())
+                    .getScaledInstance(16, 16, Image.SCALE_SMOOTH); // 调整图像大小
+            PopupMenu popup = new PopupMenu();
+
+            // 创建一个退出选项
+            MenuItem exitItem = new MenuItem();
+            exitItem.setLabel("退出");
+            exitItem.setFont(defaultTextFont.deriveFont(16F));
+            exitItem.addActionListener(e -> System.exit(0));
+
+            popup.add(exitItem);
+
+            // 创建托盘图标
+            TrayIcon trayIcon = new TrayIcon(image, "易关机", popup);
+
+            // 双击托盘图标时，展示或隐藏主界面
+            trayIcon.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        mainFrame.setVisible(!mainFrame.isVisible());
+                    }
+                }
+            });
+
+            try {
+                tray.add(trayIcon);
+            } catch (AWTException e) {
+                Logger.error(e, "无法添加系统托盘图标: {}", e.getMessage());
+            }
+        } else {
+            Logger.error("系统不支持托盘功能");
+        }
     }
 
     /**
@@ -83,12 +148,11 @@ public class EasyShutdown {
         customStatusBar.setLayout(new BorderLayout());
         { // 创建并配置左侧部分(图标和标题)
             // 设置窗口图标
-            JLabel iconLabel = new JLabel("易关机");
+            JLabel iconLabel = createLabel("易关机", 16);
             iconLabel.setHorizontalAlignment(SwingConstants.LEFT);
-            iconLabel.setFont(new Font("Serif", Font.BOLD, 16));
             // 设置按钮的背景为透明
             iconLabel.setOpaque(false);
-            iconLabel.setIcon(new ImageIcon(new ImageIcon(Resource.IMG_LOGO_32.url()).getImage()
+            iconLabel.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().createImage(Resource.IMG_LOGO_32.url())
                     .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
 
             // 创建按钮组，这个按钮组放到右边
@@ -105,14 +169,14 @@ public class EasyShutdown {
             // 按钮右对齐
             buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
             // 添加托盘按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY.path(), "托盘", e -> System.out.println("托盘功能")));
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY, "托盘", e -> System.out.println("托盘功能")));
             // 添加设置按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING.path(), "设置", e -> {
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING, "设置", e -> {
                 Logger.info("即将进入设置");
                 setting.popup();
             }));
             // 添加关闭按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE.path(), "关闭", e -> {
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE, "关闭", e -> {
                 Logger.info("即将退出程序");
                 System.exit(0);
             }));
@@ -126,26 +190,19 @@ public class EasyShutdown {
     /**
      * 创建一个带有图标和标题的动作按钮
      *
-     * @param iconPath 图标的路径，用于从类路径中加载图标
+     * @param resource 图标的枚举，用于从类路径中加载图标
      * @param title    按钮的标题，用作工具提示和备用文本
      * @param listener 按钮的动作事件监听器
      * @return 返回一个配置好的JButton对象
      */
-    private JButton createActionButton(String iconPath, String title, ActionListener listener) {
+    private JButton createActionButton(Resource resource, String title, ActionListener listener) {
         JButton button = new JButton();
         // 加载图片资源
-        URL iconURL = getClass().getResource(iconPath);
-        if (iconURL != null) {
-            ImageIcon icon = new ImageIcon(new ImageIcon(iconURL).getImage()
-                    .getScaledInstance(22, 22, Image.SCALE_SMOOTH));
-            icon.setDescription(title);
-            button.setIcon(icon);
-            button.setToolTipText(title);
-        } else {
-            button.setText(title);
-            button.setToolTipText(title);
-            Logger.warn("Icon not found: " + iconPath);
-        }
+        ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(resource.url())
+                .getScaledInstance(22, 22, Image.SCALE_SMOOTH));
+        icon.setDescription(title);
+        button.setIcon(icon);
+        button.setToolTipText(title);
 
         // 设置按钮的背景为透明
         button.setContentAreaFilled(false);
@@ -276,8 +333,7 @@ public class EasyShutdown {
 
         try {
             // 如果自定义字体资源URL不为null，则尝试创建并设置自定义字体
-            Font font = Font.createFont(Font.TRUETYPE_FONT, Resource.FONT_NUMBER_DEFAULT.stream());
-            timeShow.setFont(font.deriveFont(75F));
+            timeShow.setFont(defaultNumberFont.deriveFont(75F));
         } catch (Exception e) {
             // 如果在加载或设置自定义字体时发生异常，则打印异常信息
             e.printStackTrace();
@@ -285,6 +341,12 @@ public class EasyShutdown {
 
         // 返回初始化完成的时间显示标签
         return timeShow;
+    }
+
+    private JLabel createLabel(String title, int size) {
+        JLabel label = new JLabel(title);
+        label.setFont(defaultTextFont.deriveFont((float) size));
+        return label;
     }
 
     /**
@@ -295,23 +357,22 @@ public class EasyShutdown {
      *
      * @return JSlider 返回配置好的JSlider对象，用于表示时间滑动条
      */
-    private static JSlider buildTimeSlider() {
+    private JSlider buildTimeSlider() {
         // 创建一个JSlider对象，其值范围从0到150，初始值为0
         JSlider timeSlider = new JSlider(0, 150, 0);
 
         // 设置JSlider显示刻度标签
         timeSlider.setPaintLabels(true);
-
         // 设置JSlider的标签格式转换器
         // 用于将JSlider的值转换为字符串，并显示在标签上
         Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
-        labelTable.put(0, new JLabel("现在"));
-        labelTable.put(30, new JLabel("30分钟"));
-        labelTable.put(60, new JLabel("1小时"));
-        labelTable.put(84, new JLabel("3小时"));
-        labelTable.put(102, new JLabel("6小时"));
-        labelTable.put(126, new JLabel("12小时"));
-        labelTable.put(150, new JLabel("24小时"));
+        labelTable.put(0, createLabel("现在", 12));
+        labelTable.put(30, createLabel("30分钟", 12));
+        labelTable.put(60, createLabel("1小时", 12));
+        labelTable.put(84, createLabel("3小时", 12));
+        labelTable.put(102, createLabel("6小时", 12));
+        labelTable.put(126, createLabel("12小时", 12));
+        labelTable.put(150, createLabel("24小时", 12));
 
         // 将自定义标签设置到滑动条上
         timeSlider.setLabelTable(labelTable);
