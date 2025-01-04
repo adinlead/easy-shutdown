@@ -18,11 +18,13 @@ public class Operate {
 
     private Player player;
 
-    public Operate(String action) {
+    private String action;
+    private final JFrame mainFrame;
+
+    public Operate(JFrame mainFrame, String action) {
+        this.mainFrame = mainFrame;
         this.action = action;
     }
-
-    private String action;
 
     public void action(String action) {
         this.action = action;
@@ -104,7 +106,7 @@ public class Operate {
 
     private void showPopup() {
         SwingUtilities.invokeLater(() -> {
-            JDialog popupStage = new JDialog(EasyShutdown.getPrimaryStage(), "倒计时已结束", Dialog.ModalityType.APPLICATION_MODAL);
+            JDialog popupStage = new JDialog(mainFrame, "倒计时已结束", Dialog.ModalityType.APPLICATION_MODAL);
             popupStage.setUndecorated(true); // 去掉状态栏
             popupStage.setAlwaysOnTop(true); // 弹窗置于系统最顶层
 
@@ -143,15 +145,13 @@ public class Operate {
                 stopAudio();
                 popupStage.dispose();
                 // 将主UI设为活动层
-                if (EasyShutdown.getPrimaryStage() != null) {
-                    EasyShutdown.getPrimaryStage().toFront();
-                }
+                mainFrame.toFront();
             });
 
             // 设置场景并确保窗口大小刚好容纳内容
             popupStage.add(layout);
             popupStage.pack();
-            popupStage.setLocationRelativeTo(EasyShutdown.getPrimaryStage());
+            popupStage.setLocationRelativeTo(mainFrame);
             popupStage.setVisible(true);
         });
     }
