@@ -5,14 +5,16 @@ import cc.itez.tool.easyshutdown.TimeInfo;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class EasyShutdown {
     private static JFrame primaryStage;
+    private Point initialClick;
 
     public static JFrame getPrimaryStage() {
         return primaryStage;
@@ -24,21 +26,103 @@ public class EasyShutdown {
     public EasyShutdown() {
         // 创建JFrame
         primaryStage = new JFrame("易关机");
-        primaryStage.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         primaryStage.setSize(500, 200);
         primaryStage.setResizable(false);
         // 设置窗口位于屏幕中央
         primaryStage.setLocationRelativeTo(null);
+        // 设置窗口为无边框
+        primaryStage.setUndecorated(true);
 
-        // 设置窗口图标
-        URL iconURL = getClass().getResource("/img/logo-32.png");
-        if (iconURL != null) {
-            ImageIcon icon = new ImageIcon(iconURL);
-            primaryStage.setIconImage(icon.getImage());
-        } else {
-            Logger.warn("Icon not found: /img/logo-32.png");
+        setCustomStatusBar();
+
+        setMainPanel();
+
+        // 设置窗口可见
+        primaryStage.setVisible(true);
+    }
+
+    /**
+     * 设置自定义状态栏
+     */
+    public void setCustomStatusBar() {
+        // 创建并配置自定义状态栏
+        JPanel customStatusBar = new JPanel();
+        // 设置边框为1px黑色边框
+        customStatusBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+        // 设置背景颜色为白色
+        customStatusBar.setBackground(Color.WHITE);
+        // 添加鼠标监听器以实现拖拽功能
+        customStatusBar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                initialClick = e.getPoint();
+            }
+        });
+
+        customStatusBar.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // 计算新的窗口位置
+                int thisX = primaryStage.getLocation().x;
+                int thisY = primaryStage.getLocation().y;
+
+                int xMoved = e.getX() - initialClick.x;
+                int yMoved = e.getY() - initialClick.y;
+
+                int X = thisX + xMoved;
+                int Y = thisY + yMoved;
+                primaryStage.setLocation(X, Y);
+            }
+        });
+
+        customStatusBar.setLayout(new BorderLayout());
+        { // 创建并配置左侧部分(图标和标题)
+            // 设置窗口图标
+            JLabel iconLabel = new JLabel("易关机");
+            iconLabel.setHorizontalAlignment(SwingConstants.LEFT);
+            iconLabel.setFont(new Font("Serif", Font.BOLD, 16));
+            // 设置按钮的背景为透明
+            iconLabel.setOpaque(false);
+            URL iconURL = getClass().getResource("/img/logo/logo-32.png");
+            if (iconURL != null) {
+                iconLabel.setIcon(new ImageIcon(new ImageIcon(iconURL).getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
+            } else {
+                Logger.warn("Icon not found: /img/logo-32.png");
+            }
+
+            // 创建按钮组，这个按钮组放到右边
+            JPanel titlePanel = new JPanel();
+            titlePanel.setOpaque(false);
+            titlePanel.add(iconLabel);
+
+            customStatusBar.add(titlePanel, BorderLayout.WEST);
         }
+        { // 创建并配置右侧部分(按钮)
+            // 创建按钮组，这个按钮组放到右边
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setOpaque(false);
+            // 按钮右对齐
+            buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+            // 添加托盘按钮
+            buttonPanel.add(createActionBtn("/img/act_btn/tray.png", "托盘", e -> System.out.println("托盘功能")));
+            // 添加设置按钮
+            buttonPanel.add(createActionBtn("/img/act_btn/setting.png", "设置", e -> System.out.println("设置功能")));
+            // 添加关闭按钮
+            buttonPanel.add(createActionBtn("/img/act_btn/close.png", "关闭", e -> {
+                Logger.info("即将退出程序");
+                System.exit(0);
+            }));
 
+            // 将按钮加入到自定义状态栏
+            customStatusBar.add(buttonPanel, BorderLayout.EAST);
+        }
+        primaryStage.add(customStatusBar, BorderLayout.NORTH);
+    }
+
+    /**
+     * 设置主功能面板
+     */
+    public void setMainPanel() {
         // 创建JPanel
         JPanel vbox = new JPanel();
         vbox.setLayout(new BoxLayout(vbox, BoxLayout.Y_AXIS));
@@ -131,9 +215,51 @@ public class EasyShutdown {
 
         // 设置Scene和设置Stage
         primaryStage.add(vbox);
-        primaryStage.setVisible(true);
 
         this.bindSliderEvent(timeSlider, timeShow);
+    }
+
+    private JButton createActionBtn(String iconPath, String title, ActionListener listener) {
+        JButton button = new JButton();
+        // 加载图片资源
+        URL iconURL = getClass().getResource(iconPath);
+        if (iconURL != null) {
+            ImageIcon icon = new ImageIcon(new ImageIcon(iconURL).getImage()
+                    .getScaledInstance(22, 22, Image.SCALE_SMOOTH));
+            icon.setDescription(title);
+            button.setIcon(icon);
+            button.setToolTipText(title);
+        } else {
+            button.setText(title);
+            button.setToolTipText(title);
+            Logger.warn("Icon not found: " + iconPath);
+        }
+
+        // 设置按钮的背景为透明
+        button.setContentAreaFilled(false);
+        // 设置按钮的背景为透明
+        button.setOpaque(false);
+
+        // 设置按钮的边框为1px黑色边框
+        button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        // 添加鼠标监听器
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(Color.GRAY);
+                button.setOpaque(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(null);
+                button.setOpaque(false);
+            }
+        });
+
+        button.addActionListener(listener);
+        return button;
     }
 
     private void bindSliderEvent(JSlider timeSlider, JLabel timeShow) {

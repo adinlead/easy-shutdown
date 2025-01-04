@@ -15,7 +15,7 @@ License-Info: [license-summary](https://pixabay.com/zh/service/license-summary/)
 Download-Link: https://pixabay.com/zh/sound-effects/morning-joy-alarm-clock-20961/  
 
 ## images
-![icon.png](img/logo-512.png)  
+![icon.png](img/logo/logo-512.png)  
 Name: Logo of the project  
-Local: [icon.png](img/logo-512.png)  
+Local: [icon.png](img/logo/logo-512.png)  
 Description: 借助天工AI生成

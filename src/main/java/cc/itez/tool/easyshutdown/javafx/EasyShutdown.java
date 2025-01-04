@@ -154,7 +154,7 @@ public class EasyShutdown extends Application {
         stage.setResizable(false);
 
         // 设置窗口图标
-        URL iconURL = getClass().getResource("/img/logo-32.png");
+        URL iconURL = getClass().getResource("/img/logo/logo-32.png");
         if (iconURL != null) {
             javafx.scene.image.Image icon = new javafx.scene.image.Image(iconURL.toExternalForm());
             primaryStage.getIcons().add(icon);
