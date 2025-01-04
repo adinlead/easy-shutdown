@@ -21,9 +21,14 @@ public class EasyShutdown {
     }
 
     private javax.swing.Timer timeline; // 将 Timeline 定义为类的成员变量
-    private final AtomicReference<String> operate = new AtomicReference<>(Operate.SHUTDOWN);
+    private final Operate operate = new Operate(Operate.SHUTDOWN);
 
     public EasyShutdown() {
+        super();
+        this.init();
+    }
+
+    public void init() {
         // 创建JFrame
         primaryStage = new JFrame("易关机");
         primaryStage.setSize(500, 200);
@@ -32,11 +37,10 @@ public class EasyShutdown {
         primaryStage.setLocationRelativeTo(null);
         // 设置窗口为无边框
         primaryStage.setUndecorated(true);
-
+        // 设置自定义状态栏
         setCustomStatusBar();
-
+        // 设置主面板
         setMainPanel();
-
         // 设置窗口可见
         primaryStage.setVisible(true);
     }
@@ -185,7 +189,7 @@ public class EasyShutdown {
         shutdownRadioButton.addActionListener(e -> {
             if (shutdownRadioButton.isSelected()) {
                 Logger.debug("shutdownRadioButton ACTION");
-                operate.set(Operate.SHUTDOWN);
+                operate.action(Operate.SHUTDOWN);
             }
         });
         actionBtnBox.add(shutdownRadioButton);
@@ -194,7 +198,7 @@ public class EasyShutdown {
         restartRadioButton.addActionListener(e -> {
             if (restartRadioButton.isSelected()) {
                 Logger.debug("restartRadioButton ACTION");
-                operate.set(Operate.REBOOT);
+                operate.action(Operate.REBOOT);
             }
         });
         actionBtnBox.add(restartRadioButton);
@@ -203,7 +207,7 @@ public class EasyShutdown {
         ringingRadioButton.addActionListener(e -> {
             if (ringingRadioButton.isSelected()) {
                 Logger.debug("ringingRadioButton ACTION");
-                operate.set(Operate.RINGING);
+                operate.action(Operate.RINGING);
             }
         });
         actionBtnBox.add(ringingRadioButton);
@@ -306,8 +310,8 @@ public class EasyShutdown {
             if (info.second() <= 0) {
                 timeline.stop();
                 // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
-                Logger.debug("operate >>>> " + operate.get());
-                Operate.execute(operate.get());
+                Logger.debug("operate >>>> " + operate.action());
+                operate.execute();
             }
         });
 

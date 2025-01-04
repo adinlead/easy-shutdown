@@ -6,8 +6,6 @@ import javazoom.jl.player.Player;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -18,10 +16,24 @@ public class Operate {
     public static final String REBOOT = "reboot";
     public static final String RINGING = "ringing";
 
-    private static Player player;
+    private Player player;
 
-    public static void execute(String operateType) {
-        switch (operateType) {
+    public Operate(String action) {
+        this.action = action;
+    }
+
+    private String action;
+
+    public void action(String action) {
+        this.action = action;
+    }
+
+    public String action() {
+        return action;
+    }
+
+    public void execute() {
+        switch (this.action()) {
             case SHUTDOWN -> shutdown();
             case REBOOT -> reboot();
             case RINGING -> ringing();
@@ -29,7 +41,7 @@ public class Operate {
         }
     }
 
-    public static void shutdown() {
+    public void shutdown() {
         String os = System.getProperty("os.name").toLowerCase();
         try {
             if (os.contains("win")) {
@@ -44,7 +56,7 @@ public class Operate {
         }
     }
 
-    public static void reboot() {
+    public void reboot() {
         String os = System.getProperty("os.name").toLowerCase();
         try {
             if (os.contains("win")) {
@@ -59,12 +71,12 @@ public class Operate {
         }
     }
 
-    public static void ringing() {
+    public void ringing() {
         playAudio("/sounds/morning-joy.mp3");
         showPopup();
     }
 
-    private static void playAudio(String filePath) {
+    private void playAudio(String filePath) {
         try {
             URL resource = Operate.class.getResource(filePath);
             assert resource != null;
@@ -84,13 +96,13 @@ public class Operate {
         }
     }
 
-    private static void stopAudio() {
+    private void stopAudio() {
         if (player != null) {
             player.close();
         }
     }
 
-    private static void showPopup() {
+    private void showPopup() {
         SwingUtilities.invokeLater(() -> {
             JDialog popupStage = new JDialog(EasyShutdown.getPrimaryStage(), "倒计时已结束", Dialog.ModalityType.APPLICATION_MODAL);
             popupStage.setUndecorated(true); // 去掉状态栏
