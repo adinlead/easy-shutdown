@@ -174,7 +174,10 @@ public class EasyShutdown {
             // 按钮右对齐
             buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
             // 添加托盘按钮
-            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY, titleBarText.getTray(), e -> System.out.println("托盘功能")));
+            buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY, titleBarText.getTray(), e -> {
+                Logger.info("即将进入托盘模式");
+                mainFrame.setVisible(false);
+            }));
             // 添加设置按钮
             buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING, titleBarText.getSetting(), e -> {
                 Logger.info("即将进入设置");
