@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>易关机 - 便捷的系统管理工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+        }
+
+        .content {
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .image-container {
+            width: 500px;
+            height: 200px;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .download-panel {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .download-panel h3 {
+            margin-bottom: 10px;
+        }
+
+        .download-panel p {
+            margin-bottom: 20px;
+        }
+
+        .download-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+
+        .usage-container {
+            width: 100%;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .usage-panel {
+            width: 30%;
+            background-color: #e0e0e0;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .usage-panel h2 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .usage-panel p {
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: white;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+
+        .features {
+            margin-top: 20px;
+        }
+
+        .features ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        .info-container {
+            float: left;
+            flex: 1;
+            width: 60%;
+        }
+
+        .image-container {
+            flex: 1;
+            width: 30%;
+            margin-top: 20px;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>易关机</h1>
+    <p>一个简单易用的系统管理工具</p>
+</header>
+<div class="container">
+    <div class="content">
+        <div class="info-container">
+            <section>
+                <h2>介绍</h2>
+                <p>
+                    易关机是一个简单易用的系统管理工具，可以帮助用户轻松地设置系统关机、重启或响铃提醒。它提供了直观的用户界面，使得即使是没有技术背景的用户也能轻松操作。
+                </p>
+            </section>
+            <section class="features">
+                <h2>主要功能</h2>
+                <ul>
+                    <li>设置系统关机时间</li>
+                    <li>设置系统重启时间</li>
+                    <li>设置响铃提醒时间</li>
+                    <li>支持多语言界面</li>
+                    <li>系统托盘图标支持，方便快捷操作</li>
+                </ul>
+            </section>
+        </div>
+        <div class="image-container">
+            <!-- 在这里插入图片 -->
+            <img src="static/Easy-Shutdown-v1.png" alt="截图">
+        </div>
+        <section class="usage-container">
+            <div class="usage-panel">
+                <h2>Windows版本使用说明</h2>
+                <p>1. 下载并运行「易关机」工具。</p>
+                <p>2. 打开工具，选择你想要的操作（关机、重启、响铃）。</p>
+                <p>3. 使用滑动条设置时间。</p>
+                <p>4. 继续你的工作，时间到达后，系统会自动执行所选操作。</p>
+                <p>5. 如果需要，可以通过系统托盘图标进行快捷操作。</p>
+            </div>
+            <div class="usage-panel">
+                <h2>Linux版本使用说明</h2>
+                <p>1. 下载并使用ROOT权限运行「易关机」工具。</p>
+                <p>2. 打开工具，选择你想要的操作（关机、重启、响铃）。</p>
+                <p>3. 使用滑动条设置时间。</p>
+                <p>4. 继续你的工作，时间到达后，系统会自动执行所选操作。</p>
+                <p>5. 如果需要，可以通过系统托盘图标进行快捷操作。</p>
+                <p>P.s Linux关机需要ROOT权限，如果没有权限，则仅能使用响铃功能。</p>
+            </div>
+            <div class="usage-panel">
+                <h2>MacOS版本使用说明</h2>
+                <p>1. 下载并使用ROOT权限运行「易关机」工具。</p>
+                <p>2. 打开工具，选择你想要的操作（关机、重启、响铃）。</p>
+                <p>3. 使用滑动条设置时间。</p>
+                <p>4. 继续你的工作，时间到达后，系统会自动执行所选操作。</p>
+                <p>5. 如果需要，可以通过系统托盘图标进行快捷操作。</p>
+                <p>P.s MacOS关机需要ROOT权限，如果没有权限，则仅能使用响铃功能。</p>
+            </div>
+        </section>
+    </div>
+</div>
+<div class="download-panel">
+    <h3>版本 1.0 - 版本代号: Alpha</h3>
+    <p>这是易关机的第一个版本，包含基本的关机、重启和响铃功能。</p>
+    <div class="download-links">
+        <a href="path/to/source/code.zip">源代码</a>
+        <a href="path/to/windows/version.zip">Windows版</a>
+        <a href="path/to/linux/version.zip">Linux版</a>
+        <a href="path/to/macos/version.zip">MacOS版</a>
+    </div>
+</div>
+</body>
+</html>

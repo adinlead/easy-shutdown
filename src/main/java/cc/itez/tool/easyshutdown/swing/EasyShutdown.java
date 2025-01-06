@@ -177,17 +177,17 @@ public class EasyShutdown {
             buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_TRAY, titleBarText.getTray(), e -> {
                 Logger.info("即将进入托盘模式");
                 mainFrame.setVisible(false);
-            }));
+            }, true));
             // 添加设置按钮
             buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING, titleBarText.getSetting(), e -> {
                 Logger.info("即将进入设置");
                 setting.popup();
-            }));
+            }, false));
             // 添加关闭按钮
             buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE, titleBarText.getClose(), e -> {
                 Logger.info("即将退出程序");
                 System.exit(0);
-            }));
+            }, true));
 
             // 将按钮加入到自定义状态栏
             customStatusBar.add(buttonPanel, BorderLayout.EAST);
@@ -203,7 +203,7 @@ public class EasyShutdown {
      * @param listener 按钮的动作事件监听器
      * @return 返回一个配置好的JButton对象
      */
-    private JButton createActionButton(Resource resource, String title, ActionListener listener) {
+    private JButton createActionButton(Resource resource, String title, ActionListener listener, boolean enabled) {
         JButton button = new JButton();
         // 加载图片资源
         ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(resource.url())
@@ -219,21 +219,24 @@ public class EasyShutdown {
 
         // 设置按钮的边框为1px黑色边框
         button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        if (enabled) {
+            // 添加鼠标监听器
+            button.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    button.setBackground(Color.GRAY);
+                    button.setOpaque(true);
+                }
 
-        // 添加鼠标监听器
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(Color.GRAY);
-                button.setOpaque(true);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(null);
-                button.setOpaque(false);
-            }
-        });
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    button.setBackground(null);
+                    button.setOpaque(false);
+                }
+            });
+        } else {
+            button.setEnabled(false);
+        }
 
         button.addActionListener(listener);
         return button;
