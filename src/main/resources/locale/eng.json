@@ -1,0 +1,30 @@
+{
+  "langName": "English",
+  "langCode": "eng",
+  "title": "EasyShutdown",
+  "description": "A simple and easy to use shutdown tool.",
+  "titleBar": {
+    "title": "Easy Shutdown",
+    "tray": "Tray",
+    "setting": "Setting",
+    "close": "Close"
+  },
+  "timeSlider": {
+    "scale0": "NOW",
+    "scale30": "30MN",
+    "scale60": "1H",
+    "scale84": "3H",
+    "scale102": "6H",
+    "scale126": "12H",
+    "scale150": "24H"
+  },
+  "actionButtons": {
+    "shutdown": "Shutdown",
+    "restart": "Reboot",
+    "ringing": "Ringing"
+  },
+  "tray": {
+    "exit": "Exit",
+    "tooltip": "Easy Shutdown"
+  }
+}
