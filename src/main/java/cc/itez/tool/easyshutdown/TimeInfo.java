@@ -1,67 +1,57 @@
 package cc.itez.tool.easyshutdown;
 
-public class TimeInfo {
-    String number;
-    Integer second;
-    Double pointer;
+/**
+ * 滑块刻度到秒数的不可变映射。
+ *
+ * | 刻度区间    | 对应时长   | 步长     |
+ * | 0   - 60  | 0 - 1 小时 | 1 分钟  |
+ * | 61  - 84  | 1 - 3 小时 | 5 分钟  |
+ * | 85  - 102 | 3 - 6 小时 | 10 分钟 |
+ * | 103 - 126 | 6 - 12 小时| 15 分钟 |
+ * | 127 - 150 | 12-24 小时 | 30 分钟 |
+ *
+ * 不可变设计：倒计时的可变状态由 CountdownService 持有，本类只做值映射与格式化。
+ */
+public final class TimeInfo {
 
-    public String number() {
-        return number;
+    private final int seconds;
+
+    private TimeInfo(int seconds) {
+        this.seconds = seconds;
     }
 
-    public void number(String number) {
-        this.number = number;
+    public static TimeInfo fromSliderValue(double value) {
+        int val = (int) value;
+        int seconds;
+        if (val <= 60) {
+            seconds = val * 60;
+        } else if (val <= 84) {
+            seconds = 3600 + (val - 60) * 5 * 60;
+        } else if (val <= 102) {
+            seconds = 3 * 3600 + (val - 84) * 10 * 60;
+        } else if (val <= 126) {
+            seconds = 6 * 3600 + (val - 102) * 15 * 60;
+        } else {
+            seconds = 12 * 3600 + (val - 126) * 30 * 60;
+        }
+        return new TimeInfo(seconds);
     }
 
-    public Integer second() {
-        return second;
+    public int seconds() {
+        return seconds;
     }
 
-    public TimeInfo secondDecrement() {
-        this.number = this.formatterSecond(--this.second);
-        return this;
+    public String formatted() {
+        return format(seconds);
     }
 
     /**
-     * | 时间(小时) | 跨度(分钟) | 步长(分钟) | 刻度数 | 刻度位置 |
-     * |--------|--------|--------|-----|------|
-     * | 1      | 60     | 1      | 60  | 60   |
-     * | 3      | 120    | 5      | 24  | 84   |
-     * | 6      | 180    | 10     | 18  | 102  |
-     * | 12     | 360    | 15     | 24  | 126  |
-     * | 24     | 720    | 30     | 24  | 150  |
-     *
-     * @param value 刻度位置
+     * 将秒数格式化为 HH:mm:ss
      */
-    public TimeInfo(double value) {
-        int val = (int) value;
-        this.pointer = value;
-        if (val <= 60) {
-            this.second = val * 60;
-            this.number = this.formatterSecond(this.second);
-        } else if (val <= 84) {
-            int nv = val - 60;
-            this.second = 3600 + nv * 5 * 60;
-            this.number = this.formatterSecond(this.second);
-        } else if (val <= 102) {
-            int nv = val - 84;
-            this.second = (3 * 3600) + nv * 10 * 60;
-            this.number = this.formatterSecond(this.second);
-        } else if (val <= 126) {
-            int nv = val - 102;
-            this.second = (6 * 3600) + nv * 15 * 60;
-            this.number = this.formatterSecond(this.second);
-        } else if (val <= 150) {
-            int nv = val - 126;
-            this.second = (12 * 3600) + nv * 30 * 60;
-            this.number = this.formatterSecond(this.second);
-        }
-    }
-
-    private String formatterSecond(int seconds) {
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-        int secs = seconds % 60;
+    public static String format(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int secs = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, secs);
     }
 }

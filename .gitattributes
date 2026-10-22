@@ -1,0 +1,10 @@
+# 锁定关键文件换行符，防止跨平台 checkout 改坏
+* text=auto
+*.sh text eol=lf
+mvnw text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.ico binary
+*.ttf binary
+*.mp3 binary

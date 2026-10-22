@@ -2,6 +2,7 @@ package cc.itez.tool.easyshutdown.swing;
 
 import cc.itez.tool.easyshutdown.Logger;
 import cc.itez.tool.easyshutdown.TimeInfo;
+import cc.itez.tool.easyshutdown.core.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,23 +12,33 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * 主窗口：只负责 UI 构建与事件接线。
+ * 系统命令、倒计时、音频、配置全部委托给 core 层服务。
+ */
 public class EasyShutdown {
-    private final JFrame mainFrame = new JFrame();
-    private Point initialClick;
 
-    private javax.swing.Timer timeline; // 将 Timeline 定义为类的成员变量
-    private final Operate operate = new Operate(mainFrame, Operate.SHUTDOWN);
-    private final Setting setting = new Setting(mainFrame);
+    /** 倒计时结束后的动作类型 */
+    private enum Action {SHUTDOWN, REBOOT, RINGING}
+
+    private final JFrame mainFrame = new JFrame();
+
+    private final SystemOperator operator = SystemOperator.current();
+    private final CountdownService countdown = new CountdownService();
+    private final AudioService audio = new AudioService();
+    private final AppConfig config = new AppConfig();
+
+    private volatile Action action = Action.SHUTDOWN;
 
     private Locale locale;
-
     private Font defaultTextFont;
     private Font defaultNumberFont;
+    private Point initialClick;
 
     public EasyShutdown() {
-        super();
         this.init();
     }
 
@@ -54,17 +65,25 @@ public class EasyShutdown {
     }
 
     public void initVariables() {
-        try (InputStream stream = Resource.FONT_TEXT_DEFAULT.stream()) {
-            defaultTextFont = Font.createFont(Font.TRUETYPE_FONT, stream);
-        } catch (IOException | FontFormatException e) {
-            throw new RuntimeException(e);
+        defaultTextFont = loadFont(Resource.FONT_TEXT_DEFAULT);
+        defaultNumberFont = loadFont(Resource.FONT_NUMBER_DEFAULT);
+        String lang = config.lang();
+        if (AppConfig.LANG_SYSTEM.equals(lang)) {
+            lang = java.util.Locale.getDefault().getISO3Language();
         }
-        try (InputStream stream = Resource.FONT_NUMBER_DEFAULT.stream()) {
-            defaultNumberFont = Font.createFont(Font.TRUETYPE_FONT, stream);
+        locale = Locale.get(lang);
+    }
+
+    /**
+     * 加载字体；字体属于非关键资源，失败时降级为系统默认字体而不是直接崩溃
+     */
+    private static Font loadFont(Resource resource) {
+        try (InputStream stream = resource.stream()) {
+            return Font.createFont(Font.TRUETYPE_FONT, stream);
         } catch (IOException | FontFormatException e) {
-            throw new RuntimeException(e);
+            Logger.error(e, "字体【{}】加载失败，降级为系统默认字体", resource.path());
+            return new Font(Font.SANS_SERIF, Font.PLAIN, 12);
         }
-        locale = Locale.get(java.util.Locale.getDefault().getISO3Language());
     }
 
     /**
@@ -110,7 +129,7 @@ public class EasyShutdown {
                 Logger.error(e, "无法添加系统托盘图标: {}", e.getMessage());
             }
         } else {
-            Logger.error("系统不支持托盘功能");
+            Logger.warn("系统不支持托盘功能");
         }
     }
 
@@ -152,15 +171,12 @@ public class EasyShutdown {
 
         customStatusBar.setLayout(new BorderLayout());
         { // 创建并配置左侧部分(图标和标题)
-            // 设置窗口图标
             JLabel iconLabel = createLabel(titleBarText.getTitle(), 16);
             iconLabel.setHorizontalAlignment(SwingConstants.LEFT);
-            // 设置按钮的背景为透明
             iconLabel.setOpaque(false);
             iconLabel.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().createImage(Resource.IMG_LOGO_32.url())
                     .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
 
-            // 创建按钮组，这个按钮组放到右边
             JPanel titlePanel = new JPanel();
             titlePanel.setOpaque(false);
             titlePanel.add(iconLabel);
@@ -168,7 +184,6 @@ public class EasyShutdown {
             customStatusBar.add(titlePanel, BorderLayout.WEST);
         }
         { // 创建并配置右侧部分(按钮)
-            // 创建按钮组，这个按钮组放到右边
             JPanel buttonPanel = new JPanel();
             buttonPanel.setOpaque(false);
             // 按钮右对齐
@@ -181,8 +196,8 @@ public class EasyShutdown {
             // 添加设置按钮
             buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_SETTING, titleBarText.getSetting(), e -> {
                 Logger.info("即将进入设置");
-                setting.popup();
-            }, false));
+                openSettings();
+            }, true));
             // 添加关闭按钮
             buttonPanel.add(createActionButton(Resource.IMG_BAR_BTN_CLOSE, titleBarText.getClose(), e -> {
                 Logger.info("即将退出程序");
@@ -193,6 +208,40 @@ public class EasyShutdown {
             customStatusBar.add(buttonPanel, BorderLayout.EAST);
         }
         mainFrame.add(customStatusBar, BorderLayout.NORTH);
+    }
+
+    /**
+     * 设置弹窗：语言切换。配置写入 Preferences，重启后生效。
+     */
+    private void openSettings() {
+        Map<String, String> locales = Locale.locales();
+        if (locales.isEmpty()) {
+            Logger.warn("未找到任何语言配置");
+            return;
+        }
+        String[] names = locales.keySet().toArray(new String[0]);
+        // 找到当前语言对应的显示名作为默认选中项
+        String currentCode = config.lang();
+        String currentName = null;
+        for (Map.Entry<String, String> entry : locales.entrySet()) {
+            if (entry.getValue().equals(currentCode)) {
+                currentName = entry.getKey();
+                break;
+            }
+        }
+
+        String chosen = (String) JOptionPane.showInputDialog(
+                mainFrame,
+                "选择语言 / Language（重启后生效 / Restart to apply）",
+                locale.getTitleBar().getSetting(),
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                names,
+                currentName != null ? currentName : names[0]);
+        if (chosen != null) {
+            config.lang(locales.get(chosen));
+            Logger.info("语言已切换为 {}（{}），重启后生效", chosen, locales.get(chosen));
+        }
     }
 
     /**
@@ -214,7 +263,6 @@ public class EasyShutdown {
 
         // 设置按钮的背景为透明
         button.setContentAreaFilled(false);
-        // 设置按钮的背景为透明
         button.setOpaque(false);
 
         // 设置按钮的边框为1px黑色边框
@@ -279,10 +327,7 @@ public class EasyShutdown {
 
     /**
      * 构建操作按钮组
-     * <p>
-     * 创建并返回一个包含多个操作按钮的面板，每次仅允许选择一个操作每个按钮对应一个操作，
-     * 当被选中时，会执行相应的操作通过这个方法，我们可以集中管理所有的操作按钮，
-     * 并确保它们之间互斥，即同时只能选择一个操作
+     * 创建并返回一个包含多个操作按钮的面板，每次仅允许选择一个操作
      *
      * @return 包含操作按钮的面板
      */
@@ -298,10 +343,9 @@ public class EasyShutdown {
         // 创建关机按钮，并设置为默认选中
         JRadioButton shutdownRadioButton = new JRadioButton(actionButtonsText.getShutdown());
         shutdownRadioButton.setSelected(true);
-        // 当关机按钮被选中时，执行关机操作
         shutdownRadioButton.addActionListener(e -> {
             if (shutdownRadioButton.isSelected()) {
-                operate.action(Operate.SHUTDOWN);
+                action = Action.SHUTDOWN;
             }
         });
         actionBtnBox.add(shutdownRadioButton);
@@ -309,10 +353,9 @@ public class EasyShutdown {
 
         // 创建重启按钮
         JRadioButton restartRadioButton = new JRadioButton(actionButtonsText.getRestart());
-        // 当重启按钮被选中时，执行重启操作
         restartRadioButton.addActionListener(e -> {
             if (restartRadioButton.isSelected()) {
-                operate.action(Operate.REBOOT);
+                action = Action.REBOOT;
             }
         });
         actionBtnBox.add(restartRadioButton);
@@ -320,10 +363,9 @@ public class EasyShutdown {
 
         // 创建响铃按钮
         JRadioButton ringingRadioButton = new JRadioButton(actionButtonsText.getRinging());
-        // 当响铃按钮被选中时，执行响铃操作
         ringingRadioButton.addActionListener(e -> {
             if (ringingRadioButton.isSelected()) {
-                operate.action(Operate.RINGING);
+                action = Action.RINGING;
             }
         });
         actionBtnBox.add(ringingRadioButton);
@@ -333,25 +375,12 @@ public class EasyShutdown {
 
     /**
      * 创建并返回一个用于显示时间的JLabel对象
-     * 该方法会尝试加载自定义的数字字体，如果失败，则使用默认的Serif字体
      *
      * @return JLabel对象，用于显示时间
      */
     private JLabel buildTimeLabel() {
-        // 初始化时间显示标签，初始时间为00:00:00
         JLabel timeShow = new JLabel("00:00:00");
-
-        // 尝试获取自定义数字字体资源的URL
-
-        try {
-            // 如果自定义字体资源URL不为null，则尝试创建并设置自定义字体
-            timeShow.setFont(defaultNumberFont.deriveFont(75F));
-        } catch (Exception e) {
-            // 如果在加载或设置自定义字体时发生异常，则打印异常信息
-            e.printStackTrace();
-        }
-
-        // 返回初始化完成的时间显示标签
+        timeShow.setFont(defaultNumberFont.deriveFont(75F));
         return timeShow;
     }
 
@@ -363,9 +392,6 @@ public class EasyShutdown {
 
     /**
      * 构建时间滑动条
-     * <p>
-     * 此方法用于创建并配置一个JSlider对象，该对象用于表示时间范围从0到150的滑动条
-     * 滑动条上标记了特定时间点的标签，以便用户可以直观地选择时间范围
      *
      * @return JSlider 返回配置好的JSlider对象，用于表示时间滑动条
      */
@@ -376,7 +402,6 @@ public class EasyShutdown {
 
         // 设置JSlider显示刻度标签
         timeSlider.setPaintLabels(true);
-        // 设置JSlider的标签格式转换器
         // 用于将JSlider的值转换为字符串，并显示在标签上
         Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
         labelTable.put(0, createLabel(timeSliderText.getScale0(), 12));
@@ -399,7 +424,6 @@ public class EasyShutdown {
         // 设置滑块移动时是否跳转到最近的刻度线
         timeSlider.setSnapToTicks(true);
 
-        // 返回配置好的时间滑动条
         return timeSlider;
     }
 
@@ -411,70 +435,59 @@ public class EasyShutdown {
      * @param timeShow   时间显示标签，展示当前选择的时间
      */
     private void bindSliderEvent(JSlider timeSlider, JLabel timeShow) {
-        // 使用AtomicReference来存储上一个滑块值，以确保线程安全
         AtomicReference<Integer> lastValue = new AtomicReference<>(0);
 
         // 添加数值变动监听器
         timeSlider.addChangeListener(e -> {
             int value = timeSlider.getValue();
-            // 当滑块值变化超过0.5时，更新lastValue并刷新时间显示
-            if (Math.abs(lastValue.get() - value) > 0.5) {
+            if (value != lastValue.get()) {
                 lastValue.set(value);
-                TimeInfo info = new TimeInfo(value);
-                timeShow.setText(info.number());
-                Logger.debug("timeSliderValue     >>>> " + value);
+                timeShow.setText(TimeInfo.fromSliderValue(value).formatted());
+                Logger.debug("timeSliderValue >>>> {}", value);
             }
         });
 
         // 添加鼠标事件监听器
-        timeSlider.addMouseListener(new java.awt.event.MouseAdapter() {
+        timeSlider.addMouseListener(new MouseAdapter() {
             // 鼠标释放时，根据条件开始倒计时
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                TimeInfo info = new TimeInfo(timeSlider.getValue());
-                // 如果选择的时间大于0秒，开始倒计时
-                if (info.second() > 0) {
-                    // 从info.second开始倒计时，并且每秒更新timeShow的text内容为this.formatterSecond(info.second)
-                    startCountdown(info, timeShow);
+            public void mouseReleased(MouseEvent evt) {
+                TimeInfo info = TimeInfo.fromSliderValue(timeSlider.getValue());
+                if (info.seconds() > 0) {
+                    countdown.start(info.seconds(),
+                            // core 层回调在调度线程，切回 EDT 更新 UI
+                            secs -> SwingUtilities.invokeLater(() -> timeShow.setText(TimeInfo.format(secs))),
+                            () -> SwingUtilities.invokeLater(EasyShutdown.this::performAction));
                 }
             }
 
-            // 鼠标按下时，取消计时器
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                // 如果timeline不为空，停止计时器
-                if (timeline != null) {
-                    timeline.stop();
-                }
+            // 鼠标按下时，取消倒计时
+            public void mousePressed(MouseEvent evt) {
+                countdown.cancel();
             }
         });
     }
 
     /**
-     * 开始倒计时
-     *
-     * @param info     时间信息对象，包含倒计时的相关信息
-     * @param timeShow 显示时间的 JLabel 控件
+     * 倒计时结束，执行当前选中的动作。
+     * 这里是 UI 边界：统一捕获 core 层异常，给用户可见反馈。
      */
-    private void startCountdown(TimeInfo info, JLabel timeShow) {
-        // 停止之前的 Timeline
-        if (timeline != null) {
-            timeline.stop();
-        }
-
-        // 创建一个新的 Timeline 对象，每秒执行一次
-        timeline = new javax.swing.Timer(1000, e -> {
-            // 更新 timeShow 的文本内容
-            timeShow.setText(info.secondDecrement().number());
-
-            // 如果倒计时结束，停止 Timeline
-            if (info.second() <= 0) {
-                timeline.stop();
-                // 可以在这里添加倒计时结束后的操作，例如执行关机、重启等
-                Logger.debug("operate >>>> " + operate.action());
-                operate.execute();
+    private void performAction() {
+        Logger.debug("performAction >>>> {}", action);
+        try {
+            switch (action) {
+                case SHUTDOWN -> operator.shutdown();
+                case REBOOT -> operator.reboot();
+                case RINGING -> {
+                    audio.play(Resource.SOUND_DEFAULT.stream());
+                    new RingingDialog(mainFrame, audio::stop).show();
+                }
             }
-        });
-
-        // 启动 Timeline
-        timeline.start();
+        } catch (OperationException e) {
+            Logger.error(e, "执行动作【{}】失败", action);
+            JOptionPane.showMessageDialog(mainFrame, e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            Logger.error(e, "读取音频资源失败");
+        }
     }
 }

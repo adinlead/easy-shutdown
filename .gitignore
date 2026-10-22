@@ -1,8 +1,11 @@
 target/
-!.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.mvn/
+.mvn/*
+!.mvn/wrapper/
+
+# maven-shade-plugin 副产物
+dependency-reduced-pom.xml
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

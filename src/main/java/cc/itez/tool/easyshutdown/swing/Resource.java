@@ -27,7 +27,9 @@ public enum Resource {
     /** 默认声音文件 **/
     SOUND_DEFAULT("/sounds/morning-joy.mp3"),
     /** 默认语言 **/
-    LANG_DEFAULT("/locale/zho.json");
+    LANG_DEFAULT("/locale/zho.json"),
+    /** 英文语言 **/
+    LANG_ENG("/locale/eng.json");
 
     // 资源路径私有变量
     private final String path;
